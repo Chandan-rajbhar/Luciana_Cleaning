@@ -1,0 +1,374 @@
+@import "tailwindcss";
+
+:root {
+  --bar-h: 74px;
+  --header-h: 58px;
+  --scroll-pb: calc(var(--bar-h) + 16px + env(safe-area-inset-bottom));
+}
+
+@layer base {
+  html,
+  body {
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background-color: #0b1a33;
+    overflow: hidden;
+    overscroll-behavior: none;
+    height: 100%;
+    height: 100dvh;
+    color: #121a2b;
+  }
+}
+
+/* Hide scrollbars inside mobile viewport containers */
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Smooth 250ms screen transitions */
+@keyframes screenSlideForward {
+  from {
+    opacity: 0;
+    transform: translateX(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes screenSlideBack {
+  from {
+    opacity: 0;
+    transform: translateX(-18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes screenFade {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes sheetSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes backdropFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes toastPopIn {
+  from {
+    opacity: 0;
+    transform: translateY(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes toastPopOut {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-12px);
+  }
+}
+
+/* App-open slide-up animation */
+@keyframes appOpen {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes tabFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes plainFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes filterFade {
+  from {
+    opacity: 0;
+    transform: translateY(3px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-filter-fade {
+  animation: filterFade 150ms ease-out forwards;
+}
+
+.animate-screen-forward {
+  animation: screenSlideForward 250ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.animate-screen-back {
+  animation: screenSlideBack 250ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.animate-screen-fade {
+  animation: screenFade 250ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.animate-sheet-up {
+  animation: sheetSlideUp 250ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.animate-backdrop-in {
+  animation: backdropFadeIn 250ms ease-out forwards;
+}
+
+.animate-toast-in {
+  animation: toastPopIn 250ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.animate-toast-out {
+  animation: toastPopOut 250ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.animate-app-open {
+  animation: appOpen 600ms cubic-bezier(0.22, 1, 0.36, 1) 150ms both;
+}
+
+.animate-tab-fade {
+  animation: tabFadeIn 350ms ease-out both;
+}
+/* Ambient glow blobs drifting */
+@keyframes blobDriftA {
+  0% {
+    transform: translate(0, 0) scale(1);
+  }
+  100% {
+    transform: translate(24px, 30px) scale(1.08);
+  }
+}
+
+@keyframes blobDriftB {
+  0% {
+    transform: translate(0, 0) scale(1);
+  }
+  100% {
+    transform: translate(-22px, -26px) scale(1.08);
+  }
+}
+
+@keyframes blobDriftC {
+  0% {
+    transform: translate(0, 0) scale(1);
+  }
+  100% {
+    transform: translate(-18px, 20px) scale(1.08);
+  }
+}
+
+.animate-blob-a {
+  animation: blobDriftA 9s ease-in-out infinite alternate;
+}
+.animate-blob-b {
+  animation: blobDriftB 11s ease-in-out infinite alternate;
+}
+.animate-blob-c {
+  animation: blobDriftC 8s ease-in-out infinite alternate;
+}
+
+/* Floating outlined bubbles rising 6s */
+@keyframes bubbleRise {
+  0% {
+    transform: translateY(110%) scale(0.85);
+    opacity: 0;
+  }
+  15% {
+    opacity: 0.9;
+  }
+  80% {
+    opacity: 0.9;
+  }
+  100% {
+    transform: translateY(-120%) scale(1.08);
+    opacity: 0;
+  }
+}
+
+.animate-bubble {
+  animation: bubbleRise 6s linear infinite;
+}
+
+/* Stagger entrance fade-up */
+@keyframes staggerFadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.stagger-item {
+  animation: staggerFadeUp 600ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+.stagger-item:nth-child(1) { animation-delay: 0ms; }
+.stagger-item:nth-child(2) { animation-delay: 70ms; }
+.stagger-item:nth-child(3) { animation-delay: 140ms; }
+.stagger-item:nth-child(4) { animation-delay: 210ms; }
+.stagger-item:nth-child(5) { animation-delay: 280ms; }
+.stagger-item:nth-child(6) { animation-delay: 350ms; }
+.stagger-item:nth-child(7) { animation-delay: 420ms; }
+.stagger-item:nth-child(8) { animation-delay: 490ms; }
+.stagger-item:nth-child(9) { animation-delay: 560ms; }
+.stagger-item:nth-child(n+10) { animation-delay: 630ms; }
+
+/* Pop rotate for hero images, avatars & icons */
+@keyframes popRotateIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.3) rotate(-14deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+.animate-pop-rotate {
+  animation: popRotateIn 700ms cubic-bezier(0.2, 1.3, 0.4, 1) backwards;
+}
+
+/* Gold decorative sparkles twinkling (1.8s loop) */
+@keyframes sparkleTwinkle {
+  0%, 100% {
+    opacity: 0;
+    transform: scale(0.3) rotate(0deg);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.2) rotate(45deg);
+  }
+}
+
+.animate-sparkle-1 {
+  animation: sparkleTwinkle 1.8s ease-in-out infinite;
+}
+.animate-sparkle-2 {
+  animation: sparkleTwinkle 1.8s ease-in-out infinite 0.6s;
+}
+.animate-sparkle-3 {
+  animation: sparkleTwinkle 1.8s ease-in-out infinite 1.2s;
+}
+
+/* Top Progress Bar sweep */
+@keyframes progressSweep {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(0%);
+  }
+}
+
+.animate-progress-fill {
+  animation: progressSweep 300ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* Bottom Sheet Bubbles rising from edge */
+@keyframes sheetBubbleRise {
+  0% {
+    opacity: 0;
+    transform: translateY(0) scale(0.6);
+  }
+  30% {
+    opacity: 0.8;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-38px) scale(1.1);
+  }
+}
+
+.animate-sheet-bubble-1 {
+  animation: sheetBubbleRise 2.4s ease-out infinite;
+}
+.animate-sheet-bubble-2 {
+  animation: sheetBubbleRise 2.8s ease-out infinite 0.35s;
+}
+.animate-sheet-bubble-3 {
+  animation: sheetBubbleRise 2.2s ease-out infinite 0.7s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-app-open,
+  .animate-screen-forward,
+  .animate-screen-back,
+  .animate-screen-fade,
+  .animate-sheet-up,
+  .animate-tab-fade,
+  .animate-blob-a,
+  .animate-blob-b,
+  .animate-blob-c,
+  .animate-bubble,
+  .animate-pop-rotate,
+  .animate-sparkle-1,
+  .animate-sparkle-2,
+  .animate-sparkle-3,
+  .animate-sheet-bubble-1,
+  .animate-sheet-bubble-2,
+  .animate-sheet-bubble-3,
+  .animate-progress-fill,
+  .stagger-item {
+    animation: plainFadeIn 200ms ease-out both !important;
+    animation-delay: 0ms !important;
+    transform: none !important;
+  }
+}
