@@ -22,7 +22,7 @@ export default function CallDialog({ isOpen, onClose, onConfirmCall }) {
         aria-hidden="true"
       />
 
-      <div className="animate-sheet-up relative z-10 w-full space-y-2.5 pb-[calc(0.5rem+env(safe-area-inset-bottom))] md:pb-2">
+      <div className="animate-sheet-up relative z-10 w-full max-w-[560px] mx-auto space-y-2.5 pb-[calc(0.5rem+env(safe-area-inset-bottom))] md:pb-2">
         <div className="rounded-[24px] bg-white p-5 text-center shadow-[0_12px_36px_rgba(20,30,60,0.18)]">
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[#FDE4EA] text-[#EF5A78] ring-6 ring-[#FDE4EA]/50">
             <Phone className="h-6 w-6 stroke-[2.3]" />

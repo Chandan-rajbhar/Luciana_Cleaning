@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react'
 import { Home, Loader2, Mail, Video, X, ArrowRight } from 'lucide-react'
 import { SERVICES } from '../data/services'
 import { SheetBubbles } from './VisualEffects'
+import HomeSizePriceWidget from './HomeSizePriceWidget'
+import { calcPricingDetails } from '../data/bookingDraft'
 
 const COUNTRY_CODES = [
   { code: '+1', label: 'US +1' },
@@ -21,6 +23,8 @@ const COUNTRY_CODES = [
  */
 export default function EstimateSheet({
   isOpen,
+  bookingDraft,
+  onUpdateDraft,
   selectedServiceId,
   selectedAddOns = [],
   requestedCleaner = null,
@@ -33,7 +37,9 @@ export default function EstimateSheet({
   const [lastName, setLastName] = useState('')
   const [email, setEmail] = useState('')
   const [address, setAddress] = useState('')
-  const [city, setCity] = useState('Fort Myers')
+  const [city, setCity] = useState(
+    bookingDraft?.zip ? `Fort Myers, FL ${bookingDraft.zip}` : 'Fort Myers'
+  )
   const [countryCode, setCountryCode] = useState('+1')
   const [phone, setPhone] = useState('')
   const [estimateType, setEstimateType] = useState('In-Home Estimate')
@@ -47,8 +53,11 @@ export default function EstimateSheet({
     if (isOpen) {
       setError('')
       setIsSubmitting(false)
+      if (bookingDraft?.zip) {
+        setCity(`Fort Myers, FL ${bookingDraft.zip}`)
+      }
     }
-  }, [isOpen, selectedServiceId])
+  }, [isOpen, selectedServiceId, bookingDraft?.zip])
 
   if (!isOpen) return null
 
@@ -76,6 +85,13 @@ export default function EstimateSheet({
     onTriggerLoading?.(900)
 
     const chosenService = SERVICES.find((s) => s.id === serviceId) || SERVICES[0]
+    const pricing = calcPricingDetails({
+      bedrooms: bookingDraft?.bedrooms || 3,
+      bathrooms: bookingDraft?.bathrooms || 2,
+      frequency: bookingDraft?.frequency || 'One-time',
+      addOns: selectedAddOns.length > 0 ? selectedAddOns : bookingDraft?.addOns || [],
+      hourlyRate: chosenService.hourlyRate,
+    })
 
     setTimeout(() => {
       setIsSubmitting(false)
@@ -85,10 +101,13 @@ export default function EstimateSheet({
         date: 'Wed, Oct 15, 2025',
         time: estimateType === 'In-Home Estimate' ? '10:00 AM' : '02:00 PM',
         address: `${address.trim()}, ${city.trim()}`,
-        totalEstimate: chosenService.totalAuthorized || '$72.00',
+        totalEstimate: `$${pricing.finalPrice.toFixed(2)}`,
         customerName: `${firstName.trim()} ${lastName.trim()}`,
         selectedAddOns,
         requestedCleaner,
+        bedrooms: bookingDraft?.bedrooms || 3,
+        bathrooms: bookingDraft?.bathrooms || 2,
+        frequency: bookingDraft?.frequency || 'One-time',
       })
     }, 650)
   }
@@ -107,8 +126,8 @@ export default function EstimateSheet({
         aria-hidden="true"
       />
 
-      {/* Cream Bottom Sheet Panel */}
-      <div className="animate-sheet-up relative z-10 flex max-h-[90%] w-full flex-col rounded-t-[28px] bg-[#FAF6F0] pb-[env(safe-area-inset-bottom)] md:pb-3 shadow-[0_-12px_40px_rgba(20,30,60,0.22)] overflow-hidden">
+      {/* Cream Bottom Sheet Panel: centered max 560px on tablet */}
+      <div className="animate-sheet-up relative z-10 flex max-h-[90dvh] w-full max-w-[560px] mx-auto flex-col rounded-t-[28px] bg-[#FAF6F0] pb-[env(safe-area-inset-bottom)] md:pb-3 shadow-[0_-12px_40px_rgba(20,30,60,0.22)] overflow-hidden">
         <SheetBubbles />
         {/* Grab handle */}
         <div className="flex justify-center pt-3 pb-1" aria-hidden="true">
@@ -192,6 +211,16 @@ export default function EstimateSheet({
               </div>
             )}
           </div>
+
+          {/* Feature 2: Home Size & Instant Price Stepper Slider */}
+          <HomeSizePriceWidget
+            draft={bookingDraft}
+            onUpdateDraft={onUpdateDraft}
+            hideBookButton={true}
+            title="Home Size & Rate Calculation"
+            subtitle="Calculates estimated hours and price for your quote"
+            className="border-[#EAE3D8] shadow-xs"
+          />
 
           {/* First & Last Name */}
           <div className="grid grid-cols-2 gap-2.5">

@@ -55,7 +55,7 @@ export default function ContactScreen({
   }
 
   return (
-    <div className="flex flex-col text-[#121A2B] px-4 pt-3 pb-[calc(var(--bar-h)+16px+env(safe-area-inset-bottom))] space-y-4">
+    <div className="flex flex-col text-[#121A2B] px-4 md:px-8 pt-3 md:pt-4 pb-[calc(var(--bar-h)+24px+env(safe-area-inset-bottom))] space-y-5 max-w-[720px] mx-auto w-full">
       {/* Direct Contact Cards */}
       <div className="divide-y divide-gray-100 rounded-[24px] bg-white px-5 py-1 shadow-[0_4px_16px_rgba(20,30,60,0.06)] stagger-item">
           {/* Call Row */}

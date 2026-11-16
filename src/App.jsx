@@ -11,7 +11,6 @@ import Phone from './components/Phone'
 import StatusBar from './components/StatusBar'
 import AppHeader from './components/AppHeader'
 import TabBar from './components/TabBar'
-import MoreSheet from './components/MoreSheet'
 import HomeScreen from './components/HomeScreen'
 import ServicesScreen from './components/ServicesScreen'
 import ServiceDetailScreen from './components/ServiceDetailScreen'
@@ -20,13 +19,19 @@ import SuccessScreen from './components/SuccessScreen'
 import ChatScreen from './components/ChatScreen'
 import NotificationsScreen from './components/NotificationsScreen'
 import ProfileScreen from './components/ProfileScreen'
-import MyBookingsScreen from './components/MyBookingsScreen'
+import BookingsScreen from './components/BookingsScreen'
 import AboutScreen from './components/AboutScreen'
 import ContactScreen from './components/ContactScreen'
+import HelpScreen from './components/HelpScreen'
+import SettingsScreen from './components/SettingsScreen'
+import SplashScreen from './components/SplashScreen'
+import SideMenu from './components/SideMenu'
 import EstimateSheet from './components/EstimateSheet'
 import CallDialog from './components/CallDialog'
 import AmbientBackground from './components/AmbientBackground'
 import { TopProgressBar } from './components/VisualEffects'
+import { DEFAULT_BOOKING_DRAFT } from './data/bookingDraft'
+import { useViewport } from './hooks/useViewportMode'
 
 /**
  * Root Application: Luciana Cleaning Services
@@ -35,6 +40,8 @@ import { TopProgressBar } from './components/VisualEffects'
  * - Single realistic phone frame (390x844) on desktop, full-screen on mobile
  */
 export default function App() {
+  const { isTablet, isDesktop, isPhone, isLandscape, device } = useViewport()
+
   // Navigation stack for fluid native mobile screen transitions
   const [navStack, setNavStack] = useState([
     { screen: 'home', serviceId: SERVICES[0].id, category: 'all' },
@@ -49,24 +56,59 @@ export default function App() {
   const [isScrolled, setIsScrolled] = useState(false)
 
   // Interactive sheet & modal states (strictly inside the phone frame)
-  const [isMoreOpen, setIsMoreOpen] = useState(false)
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isEstimateOpen, setIsEstimateOpen] = useState(false)
   const [estimateServiceId, setEstimateServiceId] = useState(SERVICES[0].id)
   const [selectedAddOns, setSelectedAddOns] = useState([])
   const [requestedCleaner, setRequestedCleaner] = useState(null)
   const [isCallOpen, setIsCallOpen] = useState(false)
 
+  // Shared booking-draft state for all 7 interactive features
+  const [bookingDraft, setBookingDraft] = useState(DEFAULT_BOOKING_DRAFT)
+
+  const handleUpdateDraft = useCallback((updates) => {
+    setBookingDraft((prev) => ({ ...prev, ...updates }))
+  }, [])
+
+  // Global user profile state (synced with SideMenu, AppHeader & ProfileScreen)
+  const [userProfile, setUserProfile] = useState({
+    ...USER_PROFILE,
+    memberSince: 'October 2025',
+  })
+  const [isEditingProfile, setIsEditingProfile] = useState(false)
+
+  const handleUpdateProfile = useCallback((updatedData) => {
+    setUserProfile((prev) => ({ ...prev, ...updatedData }))
+  }, [])
+
   // Active bookings state
   const [bookings, setBookings] = useState(INITIAL_BOOKINGS)
   const [bookingSummary, setBookingSummary] = useState(INITIAL_BOOKINGS.upcoming[0])
 
-  // In-frame toast notification & app-open entrance animation
+  // In-frame toast notification
   const [toast, setToast] = useState(null)
-  const [slideSettled, setSlideSettled] = useState(false)
+  const [isIntroActive, setIsIntroActive] = useState(true)
+  const [tapsLocked, setTapsLocked] = useState(true)
   const toastTimerRef = useRef(null)
   const toastExitTimerRef = useRef(null)
   const scrollContainerRef = useRef(null)
   const homeScrollRef = useRef(0)
+
+  // App-open intro rise animation: 700ms rise starting at 150ms, taps locked for 300ms
+  useEffect(() => {
+    const tapTimer = setTimeout(() => {
+      setTapsLocked(false)
+    }, 300)
+
+    const introTimer = setTimeout(() => {
+      setIsIntroActive(false)
+    }, 860)
+
+    return () => {
+      clearTimeout(tapTimer)
+      clearTimeout(introTimer)
+    }
+  }, [])
 
   // Loading progress bar state (thin 5px coral-to-gold sweep)
   const [progressActive, setProgressActive] = useState(false)
@@ -148,8 +190,9 @@ export default function App() {
         reset = false,
       } = options
 
-      setIsMoreOpen(false)
+      setIsMenuOpen(false)
       setIsEstimateOpen(false)
+      setIsEditingProfile(false)
       setTransitionDir(dir)
       setTransitionKey((k) => k + 1)
 
@@ -173,7 +216,7 @@ export default function App() {
   )
 
   const handleBack = useCallback(() => {
-    setIsMoreOpen(false)
+    setIsMenuOpen(false)
     setIsEstimateOpen(false)
     if (navStack.length <= 1) {
       navigateTo('home', { dir: 'back', reset: true })
@@ -188,7 +231,6 @@ export default function App() {
     setEstimateServiceId(serviceId || SERVICES[0].id)
     if (addOns) setSelectedAddOns(addOns)
     if (cleaner) setRequestedCleaner(cleaner)
-    setIsMoreOpen(false)
     setIsCallOpen(false)
     setIsEstimateOpen(true)
   }, [])
@@ -200,7 +242,14 @@ export default function App() {
       serviceTitle: summary.serviceTitle,
       date: summary.date,
       time: summary.time,
-      duration: '3.0 Hours',
+      duration: summary.hours ? `${summary.hours.toFixed(1)} Hours` : '3.0 Hours',
+      hours: summary.hours,
+      bedrooms: summary.bedrooms || bookingDraft.bedrooms,
+      bathrooms: summary.bathrooms || bookingDraft.bathrooms,
+      frequency: summary.frequency || bookingDraft.frequency,
+      notes: summary.notes || bookingDraft.notes,
+      customNotes: summary.customNotes || bookingDraft.customNotes,
+      savings: summary.savings,
       address: summary.address,
       rate: summary.rate,
       totalPaid: summary.totalPaid || '$72.00',
@@ -269,20 +318,20 @@ export default function App() {
   // Has unread notifications flag
   const hasUnreadNotifications = notifications.some((n) => n.unread)
 
-  // Hide bottom tab bar on screens that have their own sticky action buttons
-  const hideTabBar = ['detail', 'schedule', 'success'].includes(currentScreen)
+  // Hide bottom tab bar on screens that have their own sticky action buttons or dedicated full views
+  const hideTabBar = ['detail', 'schedule', 'success', 'booking-details', 'profile', 'splash'].includes(currentScreen)
 
   // Active bottom tab calculation
   const activeTab =
     currentScreen === 'home'
       ? 'home'
-      : currentScreen === 'services'
+      : currentScreen === 'services' || currentScreen === 'detail'
       ? 'services'
+      : ['bookings', 'my-bookings', 'success', 'booking-details'].includes(currentScreen)
+      ? 'bookings'
       : currentScreen === 'chat'
       ? 'chat'
-      : ['my-bookings', 'about', 'contact'].includes(currentScreen)
-      ? 'more'
-      : 'home'
+      : null
 
   const animClass =
     transitionDir === 'forward'
@@ -292,103 +341,142 @@ export default function App() {
       : 'animate-screen-fade'
 
   return (
-    <div className="relative flex h-[100dvh] w-screen items-center justify-center overflow-hidden bg-[#0B1A33] bg-[radial-gradient(ellipse_at_85%_85%,_#1F1538_0%,_#0D1B36_50%,_#0B1A33_100%)]">
-      {/* Soft coral radial glow behind the phone (desktop only) */}
+    <Phone>
+      {/* Stationary App Shell Container: fixed from frame 0 */}
       <div
-        className="pointer-events-none fixed inset-0 hidden md:flex items-center justify-center overflow-hidden"
-        aria-hidden="true"
+        className={`relative z-10 flex-1 h-full w-full overflow-hidden bg-[#FAF6F0] text-[#121A2B] flex flex-col ${
+          isIntroActive ? 'app-intro-active' : ''
+        }`}
       >
-        <div className="h-[620px] w-[620px] rounded-full bg-[#EF5A78]/18 blur-[140px]" />
-      </div>
+        {/* Persistent Ambient Background at app-shell level as sibling of scroll area */}
+        <div
+          className="absolute inset-0 overflow-hidden pointer-events-none z-0"
+          aria-hidden="true"
+        >
+          <AmbientBackground
+            isTextHeavy={['chat', 'schedule', 'contact', 'profile'].includes(currentScreen)}
+          />
+        </div>
 
-      {/* Single Responsive Shell: 100vw on mobile, 390x844 frame on desktop */}
-      <div className="relative z-10 flex w-full justify-center md:w-auto">
-        <Phone>
-          {/* Stationary Simulated Status Bar (desktop frame only — never moves) */}
-          <StatusBar bg="bg-[#FAF6F0]" />
+        {/* Sticky Unified App Header (hidden on Chat & Splash screens) - stationary, visible from frame 0 */}
+        {currentScreen !== 'chat' && currentScreen !== 'splash' && (
+          <div className={`${isDesktop ? 'absolute' : 'fixed'} top-0 inset-x-0 z-30`}>
+            <AppHeader
+              currentScreen={currentScreen}
+              onBack={handleBack}
+              onOpenMenu={() => setIsMenuOpen(true)}
+              onOpenNotifications={() =>
+                navigateTo('notifications', { dir: 'forward' })
+              }
+              onEditProfile={() => setIsEditingProfile((prev) => !prev)}
+              onLogoClick={() =>
+                navigateTo('home', { dir: 'fade', reset: true })
+              }
+              hasUnreadNotifications={hasUnreadNotifications}
+              isScrolled={isScrolled}
+            />
+            {/* Loading progress bar sweeps under sticky header */}
+            <TopProgressBar
+              isActive={progressActive}
+              duration={progressDuration}
+              barKey={progressKey}
+            />
+          </div>
+        )}
 
-          {/* Viewport for app-open slide-up animation */}
-          <div className="relative flex-1 overflow-hidden bg-[#FAF6F0]">
-            {/* Sliding App Content (translateY(100%) to 0, 600ms, 150ms delay) */}
-            <div
-              onAnimationEnd={(e) => {
-                if (e.target === e.currentTarget) setSlideSettled(true)
+        {/* Top progress bar for Chat screen */}
+        {currentScreen === 'chat' && (
+          <div className={`${isDesktop ? 'absolute' : 'fixed'} top-0 inset-x-0 z-30 pointer-events-none`}>
+            <TopProgressBar
+              isActive={progressActive}
+              duration={progressDuration}
+              barKey={progressKey}
+            />
+          </div>
+        )}
+
+        {/* Bottom Navigation Bar (4-Tab Layout with Raised Center Book Button) - stationary, visible from frame 0 */}
+        {!hideTabBar && (
+          <div className={`${isDesktop ? 'absolute' : 'fixed'} bottom-0 inset-x-0 z-30 pointer-events-auto`}>
+            <TabBar
+              activeTab={activeTab}
+              onSelectTab={(tabId) => {
+                if (tabId === 'home') {
+                  navigateTo('home', { dir: 'fade', reset: true })
+                } else if (tabId === 'services') {
+                  navigateTo('services', { category: 'all', dir: 'fade' })
+                } else if (tabId === 'bookings') {
+                  navigateTo('bookings', { dir: 'fade' })
+                } else if (tabId === 'chat') {
+                  navigateTo('chat', { dir: 'fade' })
+                }
               }}
-              style={{ willChange: slideSettled ? 'auto' : 'transform' }}
-              className="animate-app-open relative z-10 h-full w-full overflow-hidden bg-[#FAF6F0] text-[#121A2B]"
-            >
-              {/* Persistent Ambient Background at app-shell level as sibling of scroll area */}
-              <div
-                className="absolute inset-0 overflow-hidden pointer-events-none z-0"
-                aria-hidden="true"
-              >
-                <AmbientBackground
-                  isTextHeavy={['chat', 'schedule', 'contact', 'profile'].includes(currentScreen)}
-                />
-              </div>
+              onCenterClick={() =>
+                navigateTo('schedule', {
+                  serviceId: currentServiceId,
+                  dir: 'forward',
+                })
+              }
+              upcomingCount={bookings?.upcoming?.length || 0}
+              hasUnreadChat={false}
+            />
+          </div>
+        )}
 
-              {/* Sticky Unified App Header (hidden on Chat screen) */}
-              {currentScreen !== 'chat' && (
-                <div className="absolute top-0 inset-x-0 z-30">
-                  <AppHeader
-                    currentScreen={currentScreen}
-                    onBack={handleBack}
-                    onOpenNotifications={() =>
-                      navigateTo('notifications', { dir: 'forward' })
-                    }
-                    onOpenProfile={() =>
-                      navigateTo('profile', { dir: 'forward' })
-                    }
-                    onLogoClick={() =>
-                      navigateTo('home', { dir: 'fade', reset: true })
-                    }
-                    hasUnreadNotifications={hasUnreadNotifications}
-                    isScrolled={isScrolled}
-                  />
-                  {/* Loading progress bar sweeps under sticky header */}
-                  <TopProgressBar
-                    isActive={progressActive}
-                    duration={progressDuration}
-                    barKey={progressKey}
-                  />
-                </div>
-              )}
-
-              {/* Top progress bar for Chat screen */}
-              {currentScreen === 'chat' && (
-                <div className="absolute top-0 inset-x-0 z-30 pointer-events-none">
-                  <TopProgressBar
-                    isActive={progressActive}
-                    duration={progressDuration}
-                    barKey={progressKey}
-                  />
-                </div>
-              )}
-
-              {/* Scrollable Screen Viewport */}
-              <main
-                ref={scrollContainerRef}
-                onScroll={handleScroll}
-                style={{
-                  paddingTop: currentScreen !== 'chat' ? 'var(--header-h)' : 0,
-                }}
-                className={`no-scrollbar relative z-10 h-full w-full overflow-x-hidden ${
-                  ['chat', 'detail', 'schedule', 'success'].includes(currentScreen)
-                    ? 'overflow-hidden flex flex-col'
-                    : 'overflow-y-auto'
-                } [overscroll-behavior:contain]`}
-              >
-                <div
-                  key={transitionKey}
-                  className={`${animClass} ${
-                    ['chat', 'detail', 'schedule', 'success'].includes(currentScreen)
-                      ? 'h-full flex flex-col'
-                      : 'w-full'
-                  } relative z-10`}
+        {/* Screen Content Wrapper: clipped between header and bottom bar during intro */}
+        <div
+          className={`relative z-10 flex-1 h-full w-full ${
+            isIntroActive ? 'overflow-hidden' : ''
+          }`}
+          style={
+            isIntroActive
+              ? {
+                  clipPath:
+                    'inset(var(--header-h) 0px calc(var(--bar-h) + env(safe-area-inset-bottom, 0px)) 0px)',
+                }
+              : undefined
+          }
+        >
+          {/* Scrollable Screen Viewport */}
+                <main
+                  ref={scrollContainerRef}
+                  onScroll={handleScroll}
+                  style={{
+                    paddingTop: !['chat', 'splash'].includes(currentScreen)
+                      ? 'var(--header-h)'
+                      : 0,
+                  }}
+                  className={`no-scrollbar relative z-10 h-full w-full overflow-x-hidden ${
+                    isMenuOpen || ['chat', 'detail', 'schedule', 'success', 'splash'].includes(currentScreen)
+                      ? 'overflow-hidden flex flex-col'
+                      : 'overflow-y-auto'
+                  } [overscroll-behavior:contain]`}
                 >
+                  <div
+                    key={transitionKey}
+                    className={`${
+                      isIntroActive
+                        ? 'animate-content-rise'
+                        : animClass
+                    } ${
+                      tapsLocked ? 'pointer-events-none' : ''
+                    } ${
+                      ['chat', 'detail', 'schedule', 'success', 'splash'].includes(currentScreen)
+                        ? 'h-full flex flex-col'
+                        : 'w-full'
+                    } relative z-10`}
+                  >
                   {/* Screen 1: Home & Discovery */}
                   {currentScreen === 'home' && (
                     <HomeScreen
+                      bookingDraft={bookingDraft}
+                      onUpdateDraft={handleUpdateDraft}
+                      onBookThisSize={() =>
+                        navigateTo('schedule', {
+                          serviceId: currentServiceId,
+                          dir: 'forward',
+                        })
+                      }
                       onSelectService={(serviceId) =>
                         navigateTo('detail', { serviceId, dir: 'forward' })
                       }
@@ -403,6 +491,9 @@ export default function App() {
                       }
                       onOpenEstimate={(serviceId, addOns, cleaner) =>
                         openEstimate(serviceId, addOns, cleaner)
+                      }
+                      onNavigateBookings={() =>
+                        navigateTo('bookings', { dir: 'forward' })
                       }
                       onShowToast={showToast}
                       onTriggerLoading={triggerProgress}
@@ -424,6 +515,8 @@ export default function App() {
                   {currentScreen === 'detail' && (
                     <ServiceDetailScreen
                       serviceId={currentServiceId}
+                      bookingDraft={bookingDraft}
+                      onUpdateDraft={handleUpdateDraft}
                       onBookNow={(serviceId) =>
                         navigateTo('schedule', { serviceId, dir: 'forward' })
                       }
@@ -435,6 +528,8 @@ export default function App() {
                   {currentScreen === 'schedule' && (
                     <ScheduleScreen
                       serviceId={currentServiceId}
+                      bookingDraft={bookingDraft}
+                      onUpdateDraft={handleUpdateDraft}
                       onBack={handleBack}
                       onConfirmSchedule={handleConfirmSchedule}
                       onShowToast={showToast}
@@ -474,26 +569,45 @@ export default function App() {
                     />
                   )}
 
-                  {/* Screen 8: Profile Screen (Section 4) */}
+                  {/* Screen 8: Profile Screen (Dedicated Profile Details Only) */}
                   {currentScreen === 'profile' && (
                     <ProfileScreen
-                      user={USER_PROFILE}
-                      onNavigateBookings={() =>
-                        navigateTo('my-bookings', { dir: 'forward' })
-                      }
+                      user={userProfile}
+                      onUpdateProfile={handleUpdateProfile}
+                      isEditing={isEditingProfile}
+                      setIsEditing={setIsEditingProfile}
                       onShowToast={showToast}
                     />
                   )}
 
-                  {/* Screen 9: My Bookings Screen (Section 4) */}
-                  {currentScreen === 'my-bookings' && (
-                    <MyBookingsScreen
+                  {/* Screen 9: Bookings Screen (Section 4) */}
+                  {(currentScreen === 'bookings' || currentScreen === 'my-bookings') && (
+                    <BookingsScreen
                       bookings={bookings}
                       onOpenSchedule={() =>
                         navigateTo('schedule', {
                           serviceId: SERVICES[0].id,
                           dir: 'forward',
                         })
+                      }
+                      onOpenChat={() => navigateTo('chat', { dir: 'forward' })}
+                      onOpenDetails={(bookingItem) => {
+                        setBookingSummary(bookingItem)
+                        navigateTo('booking-details', { dir: 'forward' })
+                      }}
+                      onShowToast={showToast}
+                      onTriggerLoading={triggerProgress}
+                    />
+                  )}
+
+                  {/* Screen: Booking Details (styled like Booking Confirmed) */}
+                  {currentScreen === 'booking-details' && (
+                    <SuccessScreen
+                      bookingData={bookingSummary}
+                      isDetails={true}
+                      onBack={handleBack}
+                      onBackHome={() =>
+                        navigateTo('bookings', { dir: 'back' })
                       }
                       onOpenChat={() => navigateTo('chat', { dir: 'forward' })}
                       onOpenCall={() => setIsCallOpen(true)}
@@ -523,53 +637,65 @@ export default function App() {
                       onShowToast={showToast}
                     />
                   )}
+
+                  {/* Screen 12: Help & FAQ */}
+                  {currentScreen === 'help' && (
+                    <HelpScreen
+                      onNavigateContact={() =>
+                        navigateTo('contact', { dir: 'forward' })
+                      }
+                      onOpenChat={() => navigateTo('chat', { dir: 'forward' })}
+                      onOpenCall={() => setIsCallOpen(true)}
+                      onShowToast={showToast}
+                    />
+                  )}
+
+                  {/* Screen 13: App Settings */}
+                  {currentScreen === 'settings' && (
+                    <SettingsScreen
+                      onShowToast={showToast}
+                      onResetDemo={() => showToast('Demo preferences updated.')}
+                    />
+                  )}
+
+                  {/* Screen: Splash Screen */}
+                  {currentScreen === 'splash' && (
+                    <SplashScreen
+                      onFinish={() =>
+                        navigateTo('home', { dir: 'fade', reset: true })
+                      }
+                    />
+                  )}
                 </div>
               </main>
+            </div>
 
-              {/* Bottom Navigation Bar (Section 2: hidden on Detail, Schedule, Success) */}
-              {!hideTabBar && (
-                <div className="absolute bottom-0 inset-x-0 z-30">
-                  <TabBar
-                    activeTab={activeTab}
-                    onSelectTab={(tabId) => {
-                      if (tabId === 'home') {
-                        navigateTo('home', { dir: 'fade', reset: true })
-                      } else if (tabId === 'services') {
-                        navigateTo('services', { dir: 'fade' })
-                      } else if (tabId === 'chat') {
-                        navigateTo('chat', { dir: 'fade' })
-                      }
-                    }}
-                    onCenterClick={() =>
-                      navigateTo('schedule', {
-                        serviceId: currentServiceId,
-                        dir: 'forward',
-                      })
-                    }
-                    onOpenMore={() => setIsMoreOpen(true)}
-                  />
-                </div>
-              )}
-
-              {/* In-Frame "More" Bottom Sheet (Section 2) */}
-              <MoreSheet
-                isOpen={isMoreOpen}
-                onClose={() => setIsMoreOpen(false)}
-                onNavigate={(routeId) => {
-                  setIsMoreOpen(false)
-                  if (routeId === 'help') {
-                    showToast('Support & Dispatch: (239) 555-0189 • 7am-7pm')
-                  } else if (routeId === 'settings') {
-                    showToast('Settings: SMS & Push alerts enabled.')
+            {/* In-Frame Side Menu Drawer (Slides in from Left) */}
+              <SideMenu
+                isOpen={isMenuOpen}
+                onClose={() => setIsMenuOpen(false)}
+                currentScreen={currentScreen}
+                onSelectScreen={(screen) => {
+                  if (screen === 'home') {
+                    navigateTo('home', { dir: 'fade', reset: true })
+                  } else if (screen === 'services') {
+                    navigateTo('services', { category: 'all', dir: 'forward' })
                   } else {
-                    navigateTo(routeId, { dir: 'forward' })
+                    navigateTo(screen, { dir: 'forward' })
                   }
                 }}
+                onOpenCall={() => setIsCallOpen(true)}
+                onShowToast={showToast}
+                user={userProfile}
+                hasUnreadNotifications={hasUnreadNotifications}
+                hasUnreadChat={false}
               />
 
               {/* In-Frame Free Estimate Bottom Sheet */}
               <EstimateSheet
                 isOpen={isEstimateOpen}
+                bookingDraft={bookingDraft}
+                onUpdateDraft={handleUpdateDraft}
                 selectedServiceId={estimateServiceId}
                 selectedAddOns={selectedAddOns}
                 requestedCleaner={requestedCleaner}
@@ -600,10 +726,12 @@ export default function App() {
                     right: 16,
                     margin: '0 auto',
                     width: 'fit-content',
-                    maxWidth: 'calc(100% - 32px)',
+                    maxWidth: isTablet ? 'min(420px, calc(100% - 48px))' : 'calc(100% - 32px)',
                     boxSizing: 'border-box',
                   }}
-                  className={`pointer-events-none fixed md:absolute z-[100] flex items-center justify-center gap-2.5 rounded-[16px] bg-[#121A2B]/95 px-4 py-3 text-white shadow-[0_8px_30px_rgba(0,0,0,0.35)] ring-1 ring-white/10 backdrop-blur-md ${
+                  className={`pointer-events-none fixed ${
+                    isDesktop ? 'md:absolute' : ''
+                  } z-[100] flex items-center justify-center gap-2.5 rounded-[16px] bg-[#121A2B]/95 px-4 py-3 text-white shadow-[0_8px_30px_rgba(0,0,0,0.35)] ring-1 ring-white/10 backdrop-blur-md ${
                     toast.isExiting ? 'animate-toast-out' : 'animate-toast-in'
                   }`}
                 >
@@ -618,9 +746,6 @@ export default function App() {
                 </div>
               )}
             </div>
-          </div>
         </Phone>
-      </div>
-    </div>
   )
 }

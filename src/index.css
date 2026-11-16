@@ -2,19 +2,42 @@
 
 :root {
   --bar-h: 74px;
-  --header-h: 58px;
+  --header-h: 64px;
   --scroll-pb: calc(var(--bar-h) + 16px + env(safe-area-inset-bottom));
+}
+
+[data-device="tablet"] {
+  --header-h: 72px;
+  --bar-h: 80px;
+  --scroll-pb: calc(var(--bar-h) + 24px + env(safe-area-inset-bottom, 0px));
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  height: 100%;
+  height: 100dvh;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+[data-device="desktop"] body,
+html:not([data-device]) body {
+  background-color: #0b1a33;
+}
+
+[data-device="tablet"] body,
+[data-device="phone"] body {
+  background-color: #FAF6F0 !important;
 }
 
 @layer base {
   html,
   body {
     font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    background-color: #0b1a33;
-    overflow: hidden;
     overscroll-behavior: none;
-    height: 100%;
-    height: 100dvh;
     color: #121a2b;
   }
 }
@@ -104,8 +127,8 @@
   }
 }
 
-/* App-open slide-up animation */
-@keyframes appOpen {
+/* App-open content rise animation */
+@keyframes contentRise {
   from {
     transform: translateY(100%);
     opacity: 0;
@@ -114,6 +137,11 @@
     transform: translateY(0);
     opacity: 1;
   }
+}
+
+.animate-content-rise {
+  animation: contentRise 700ms cubic-bezier(0.22, 1, 0.36, 1) 150ms both;
+  will-change: transform, opacity;
 }
 
 @keyframes tabFadeIn {
@@ -165,6 +193,43 @@
   animation: sheetSlideUp 250ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
+@keyframes drawerSlideInLeft {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes drawerSlideOutLeft {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-100%);
+  }
+}
+
+.animate-drawer-in {
+  animation: drawerSlideInLeft 300ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.animate-drawer-out {
+  animation: drawerSlideOutLeft 300ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-drawer-in {
+    animation: plainFadeIn 200ms ease-out forwards;
+    transform: none !important;
+  }
+  .animate-drawer-out {
+    animation: plainFadeIn 200ms ease-out reverse forwards;
+    transform: none !important;
+  }
+}
+
 .animate-backdrop-in {
   animation: backdropFadeIn 250ms ease-out forwards;
 }
@@ -183,6 +248,22 @@
 
 .animate-tab-fade {
   animation: tabFadeIn 350ms ease-out both;
+}
+
+@keyframes tabPop {
+  0% {
+    transform: scale(0.92);
+  }
+  50% {
+    transform: scale(1.12);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.animate-tab-pop {
+  animation: tabPop 200ms cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
 }
 /* Ambient glow blobs drifting */
 @keyframes blobDriftA {
@@ -244,11 +325,11 @@
   animation: bubbleRise 6s linear infinite;
 }
 
-/* Stagger entrance fade-up */
-@keyframes staggerFadeUp {
+/* Stagger entrance fade-up for top-level sections during intro only */
+@keyframes staggerRise {
   from {
     opacity: 0;
-    transform: translateY(18px);
+    transform: translateY(40px);
   }
   to {
     opacity: 1;
@@ -256,19 +337,18 @@
   }
 }
 
-.stagger-item {
-  animation: staggerFadeUp 600ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
+.app-intro-active .stagger-item {
+  animation: staggerRise 500ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  will-change: transform, opacity;
 }
-.stagger-item:nth-child(1) { animation-delay: 0ms; }
-.stagger-item:nth-child(2) { animation-delay: 70ms; }
-.stagger-item:nth-child(3) { animation-delay: 140ms; }
-.stagger-item:nth-child(4) { animation-delay: 210ms; }
-.stagger-item:nth-child(5) { animation-delay: 280ms; }
-.stagger-item:nth-child(6) { animation-delay: 350ms; }
-.stagger-item:nth-child(7) { animation-delay: 420ms; }
-.stagger-item:nth-child(8) { animation-delay: 490ms; }
-.stagger-item:nth-child(9) { animation-delay: 560ms; }
-.stagger-item:nth-child(n+10) { animation-delay: 630ms; }
+.app-intro-active .stagger-item:nth-child(1) { animation-delay: 150ms; }
+.app-intro-active .stagger-item:nth-child(2) { animation-delay: 220ms; }
+.app-intro-active .stagger-item:nth-child(3) { animation-delay: 290ms; }
+.app-intro-active .stagger-item:nth-child(4) { animation-delay: 360ms; }
+.app-intro-active .stagger-item:nth-child(5) { animation-delay: 430ms; }
+.app-intro-active .stagger-item:nth-child(6) { animation-delay: 500ms; }
+.app-intro-active .stagger-item:nth-child(7) { animation-delay: 570ms; }
+.app-intro-active .stagger-item:nth-child(n+8) { animation-delay: 600ms; }
 
 /* Pop rotate for hero images, avatars & icons */
 @keyframes popRotateIn {
@@ -347,8 +427,34 @@
   animation: sheetBubbleRise 2.2s ease-out infinite 0.7s;
 }
 
+/* Strikethrough line animation for frequency toggle */
+@keyframes strikeLine {
+  from {
+    width: 0%;
+  }
+  to {
+    width: 100%;
+  }
+}
+
+/* Subtle pop-in scale animation */
+@keyframes popIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-pop-in {
+  animation: popIn 250ms cubic-bezier(0.2, 1.2, 0.4, 1) forwards;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .animate-app-open,
+  .animate-content-rise,
   .animate-screen-forward,
   .animate-screen-back,
   .animate-screen-fade,
@@ -366,6 +472,7 @@
   .animate-sheet-bubble-2,
   .animate-sheet-bubble-3,
   .animate-progress-fill,
+  .animate-pop-in,
   .stagger-item {
     animation: plainFadeIn 200ms ease-out both !important;
     animation-delay: 0ms !important;

@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react'
 import { Star, ChevronRight, AlertCircle } from 'lucide-react'
 import { SERVICES, CATEGORIES } from '../data/services'
+import { useViewport } from '../hooks/useViewportMode'
 
 /**
  * Screen: Our Services (Section 3)
@@ -17,6 +18,7 @@ export default function ServicesScreen({
   onSelectService,
   onTriggerLoading,
 }) {
+  const { isTablet, isLandscape } = useViewport()
   const [activeCategory, setActiveCategory] = useState(
     (initialCategory || 'all').toLowerCase()
   )
@@ -57,9 +59,9 @@ export default function ServicesScreen({
   }, [activeCategory])
 
   return (
-    <div className="flex flex-col text-[#121A2B] px-4 pt-3 space-y-3.5 pb-[calc(var(--bar-h)+16px+env(safe-area-inset-bottom))]">
+    <div className={`flex flex-col text-[#121A2B] ${isTablet ? 'px-8 pt-4 space-y-5' : 'px-4 pt-3 space-y-3.5'} pb-[calc(var(--bar-h)+16px+env(safe-area-inset-bottom))]`}>
       {/* Horizontal Category Filter Chips */}
-      <div className="stagger-item flex gap-2 overflow-x-auto no-scrollbar py-0.5 -mx-4 px-4 scroll-smooth">
+      <div className={`stagger-item flex gap-2 overflow-x-auto no-scrollbar py-0.5 ${isTablet ? '-mx-8 px-8' : '-mx-4 px-4'} scroll-smooth`}>
         {CATEGORIES.map((cat) => {
           const isSelected = activeCategory === cat.id
           return (
@@ -107,7 +109,13 @@ export default function ServicesScreen({
         ) : (
           <div
             key={activeCategory}
-            className="space-y-3 animate-filter-fade"
+            className={
+              isTablet
+                ? isLandscape
+                  ? 'grid grid-cols-3 gap-4 space-y-0 animate-filter-fade'
+                  : 'grid grid-cols-2 gap-4 space-y-0 animate-filter-fade'
+                : 'space-y-3 animate-filter-fade'
+            }
           >
             {filteredServices.map((service) => (
               <div
