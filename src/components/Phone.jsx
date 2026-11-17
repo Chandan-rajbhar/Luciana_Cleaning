@@ -1,27 +1,24 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef } from 'react'
 import { useViewport } from '../hooks/useViewportMode'
 import StatusBar from './StatusBar'
 
 /**
  * Desktop Phone Frame:
  * Renders ONLY on desktop with a mouse (>=1025px not touch-first, or >1366px).
- * Centers a realistic 390x844 phone inside a 48px-radius hardware bezel,
- * scaled to fit the window height so it never causes outer page scroll.
+ * - Full-viewport stage: position fixed, inset 0, flex, center, overflow hidden
+ * - Scaled frame: flex: none so it never shrinks, scaled with CSS transform: scale(var(--frame-scale, 0.85)) and transform-origin center
+ * - Inner screen: exactly 390x844 (unchanged)
+ * - Auto-fit: scale = min(0.88, (window.innerHeight - 40) / frameHeight), measured from real total frame height including bezel
  */
 function DesktopPhoneFrame({ children }) {
-  const OUTER_W = 414 // 390 + 12px bezel left + 12px bezel right
-  const OUTER_H = 868 // 844 + 12px bezel top + 12px bezel bottom
-
-  const [scale, setScale] = useState(1)
+  const frameRef = useRef(null)
 
   useEffect(() => {
     const updateScale = () => {
-      const vw = window.innerWidth
-      const vh = window.innerHeight
-      const maxScaleH = (vh - 32) / OUTER_H
-      const maxScaleW = (vw - 32) / OUTER_W
-      const s = Math.max(0.55, Math.min(1, maxScaleH, maxScaleW))
-      setScale(s)
+      // Real total height of the frame including bezel (measure it, don't guess)
+      const frameHeight = frameRef.current?.offsetHeight || 868
+      const scale = Math.min(0.88, (window.innerHeight - 40) / frameHeight)
+      document.documentElement.style.setProperty('--frame-scale', scale.toFixed(4))
     }
 
     updateScale()
@@ -29,20 +26,8 @@ function DesktopPhoneFrame({ children }) {
     return () => window.removeEventListener('resize', updateScale)
   }, [])
 
-  const outerStyle = {
-    width: `${Math.round(OUTER_W * scale)}px`,
-    height: `${Math.round(OUTER_H * scale)}px`,
-  }
-
-  const bezelStyle = {
-    width: `${OUTER_W}px`,
-    height: `${OUTER_H}px`,
-    transform: `scale(${scale})`,
-    transformOrigin: 'top center',
-  }
-
   return (
-    <div className="relative flex h-[100dvh] w-full items-center justify-center overflow-hidden bg-[#0B1A33] bg-[radial-gradient(ellipse_at_85%_85%,_#1F1538_0%,_#0D1B36_50%,_#0B1A33_100%)] select-none">
+    <div className="desktop-phone-stage fixed inset-0 flex items-center justify-center overflow-hidden bg-[#0B1A33] bg-[radial-gradient(ellipse_at_85%_85%,_#1F1538_0%,_#0D1B36_50%,_#0B1A33_100%)] select-none">
       {/* Soft coral radial glow behind the phone on desktop */}
       <div
         className="pointer-events-none fixed inset-0 flex items-center justify-center overflow-hidden"
@@ -51,47 +36,48 @@ function DesktopPhoneFrame({ children }) {
         <div className="h-[620px] w-[620px] rounded-full bg-[#EF5A78]/18 blur-[140px]" />
       </div>
 
-      {/* Frame wrapper */}
-      <div style={outerStyle} className="relative shrink-0 mx-auto flex items-center justify-center">
-        {/* Hardware Bezel */}
+      {/* Hardware Bezel & Scaled Frame (flex: none so it never shrinks) */}
+      <div
+        ref={frameRef}
+        style={{
+          transform: 'scale(var(--frame-scale, 0.85))',
+          transformOrigin: 'center',
+        }}
+        className="desktop-phone-frame relative flex-none w-[414px] h-[868px] rounded-[48px] bg-[#0D1526] p-[12px] shadow-[0_30px_90px_rgba(0,0,0,0.75),0_0_80px_rgba(239,90,120,0.2)] ring-1 ring-white/15"
+      >
+        {/* Subtle metallic side buttons */}
         <div
-          style={bezelStyle}
-          className="relative h-full w-full rounded-[48px] bg-[#0D1526] p-[12px] shadow-[0_30px_90px_rgba(0,0,0,0.75),0_0_80px_rgba(239,90,120,0.2)] ring-1 ring-white/15"
-        >
-          {/* Subtle metallic side buttons */}
-          <div
-            className="absolute top-[116px] -left-[3px] h-7 w-[3px] rounded-l-sm bg-neutral-600"
-            aria-hidden="true"
-          />
-          <div
-            className="absolute top-[164px] -left-[3px] h-12 w-[3px] rounded-l-sm bg-neutral-600"
-            aria-hidden="true"
-          />
-          <div
-            className="absolute top-[224px] -left-[3px] h-12 w-[3px] rounded-l-sm bg-neutral-600"
-            aria-hidden="true"
-          />
-          <div
-            className="absolute top-[184px] -right-[3px] h-16 w-[3px] rounded-r-sm bg-neutral-600"
-            aria-hidden="true"
-          />
+          className="absolute top-[116px] -left-[3px] h-7 w-[3px] rounded-l-sm bg-neutral-600"
+          aria-hidden="true"
+        />
+        <div
+          className="absolute top-[164px] -left-[3px] h-12 w-[3px] rounded-l-sm bg-neutral-600"
+          aria-hidden="true"
+        />
+        <div
+          className="absolute top-[224px] -left-[3px] h-12 w-[3px] rounded-l-sm bg-neutral-600"
+          aria-hidden="true"
+        />
+        <div
+          className="absolute top-[184px] -right-[3px] h-16 w-[3px] rounded-r-sm bg-neutral-600"
+          aria-hidden="true"
+        />
 
-          {/* 390x844 phone screen */}
-          <div className="relative flex h-[844px] w-[390px] flex-col overflow-hidden rounded-[38px] bg-[#FAF6F0] text-[#121A2B] select-text ring-1 ring-black/60">
-            {/* Stationary Simulated Status Bar (desktop frame only) */}
-            <StatusBar bg="bg-[#FAF6F0]" />
+        {/* 390x844 phone screen (inner layout & breakpoints strictly preserved) */}
+        <div className="relative flex h-[844px] w-[390px] flex-col overflow-hidden rounded-[38px] bg-[#FAF6F0] text-[#121A2B] select-text ring-1 ring-black/60">
+          {/* Stationary Simulated Status Bar with Dynamic Island notch */}
+          <StatusBar bg="bg-[#FAF6F0]" />
 
-            <div className="relative flex-1 h-full w-full overflow-hidden flex flex-col">
-              {children}
-            </div>
+          <div className="relative flex-1 h-full w-full overflow-hidden flex flex-col">
+            {children}
+          </div>
 
-            {/* Stationary desktop Home Indicator */}
-            <div
-              className="pointer-events-none absolute inset-x-0 bottom-0 z-50 flex h-[18px] items-center justify-center pb-1"
-              aria-hidden="true"
-            >
-              <div className="h-[4px] w-[128px] rounded-full bg-[#121A2B]/20" />
-            </div>
+          {/* Stationary desktop Home Indicator */}
+          <div
+            className="pointer-events-none absolute inset-x-0 bottom-0 z-50 flex h-[18px] items-center justify-center pb-1"
+            aria-hidden="true"
+          >
+            <div className="h-[4px] w-[128px] rounded-full bg-[#121A2B]/20" />
           </div>
         </div>
       </div>
@@ -102,12 +88,15 @@ function DesktopPhoneFrame({ children }) {
 /**
  * Full-Screen Shell:
  * Rendered on Phones (<768px) and Tablets/iPads.
- * Fills 100vw x 100dvh edge-to-edge with no phone frame, no bezel, no margin,
- * no scale transform, and border-radius: 0.
+ * Uses 100% height / var(--app-h, 100%) edge-to-edge with no phone frame, no bezel, no margin,
+ * no scale transform, no vh/dvh dependency, and border-radius: 0.
  */
 function FullScreenShell({ children }) {
   return (
-    <div className="relative h-[100dvh] h-screen w-full w-screen max-w-full overflow-hidden bg-[#FAF6F0] text-[#121A2B] select-text flex flex-col m-0 p-0 rounded-none">
+    <div
+      style={{ height: 'var(--app-h, 100%)' }}
+      className="relative h-full w-full max-w-full overflow-hidden bg-[#FAF6F0] text-[#121A2B] select-text flex flex-col m-0 p-0 rounded-none"
+    >
       {children}
     </div>
   )

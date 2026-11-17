@@ -40,7 +40,7 @@ export default function SideMenu({
   hasUnreadNotifications = false,
   hasUnreadChat = false,
 }) {
-  const { isTablet } = useViewport()
+  const { isTablet, isDesktop } = useViewport()
   const [avatarError, setAvatarError] = useState(false)
   const closeButtonRef = useRef(null)
   const touchStartXRef = useRef(0)
@@ -186,7 +186,7 @@ export default function SideMenu({
       role="dialog"
       aria-modal="true"
       aria-label="Navigation menu"
-      className="fixed md:absolute inset-0 z-50 flex justify-start overflow-hidden select-none"
+      className={`${isDesktop ? 'absolute' : 'fixed'} inset-0 z-50 flex justify-start overflow-hidden select-none`}
     >
       {/* 1. Dimmed blurred overlay covering remaining right side */}
       <div

@@ -6,24 +6,30 @@ import {
   CalendarCheck,
   MessageCircle,
 } from 'lucide-react'
-import { useViewport } from '../hooks/useViewportMode'
 
 /**
- * Bottom Navigation Bar (4-Tab Layout with Raised Center Action Button)
- * - 4 Side Tabs:
- *     1. Home (Home icon) + "Home"
- *     2. Services (Brush icon) + "Services"
- *     [Center: Raised 64px Coral Circle with CalendarPlus icon, opens Schedule]
- *     3. Bookings (CalendarCheck icon) + "Bookings"
- *     4. Chat (MessageCircle icon) + "Chat"
- * - All side icons: 24x24px (26px on tablet), 1.75px stroke, sharing the same baseline
- * - Active: Coral (#EF5A78), label bold
- * - Inactive: Gray (#8A8FA3), label medium
- * - Press state: scale 0.92 on icon (150ms transition)
- * - Active pop: animate-tab-pop (200ms)
- * - Badges: optional count badge on Bookings, dot on Chat
- * - Tablet: full width bar fixed at bottom, tab group centered at max-w-[640px], 26px icons, 12px labels
+ * Floating Pill Bottom Navigation Bar:
+ * - Floating white pill bar: absolute inside the app shell, left and right 10px,
+ *   bottom max(12px, env(safe-area-inset-bottom)), fully rounded, white background,
+ *   1px light border, padding 6px, z-index 40.
+ * - Five equal tabs: Home, Services, Book, Bookings, Chat.
+ *   (Raised circular center button removed; Book is an equal tab with CalendarPlus icon)
+ * - Each tab: icon 20px on top, label 11px below, flex-1, min-w-0, min tap target 44px.
+ * - Active tab: soft rounded pill background (theme primary at ~15% opacity) with icon and
+ *   label in theme primary color (AA contrast compliant across themes).
+ * - Inactive tabs: muted gray.
+ * - Animation: 200ms background and color transition, respecting prefers-reduced-motion.
+ * - Bookings unread badge: small primary-colored circle with white number and white ring.
+ * - Accessibility: role="tablist", role="tab", aria-selected, aria-label.
  */
+const TABS = [
+  { id: 'home', label: 'Home', icon: Home },
+  { id: 'services', label: 'Services', icon: Brush },
+  { id: 'book', label: 'Book', icon: CalendarPlus },
+  { id: 'bookings', label: 'Bookings', icon: CalendarCheck },
+  { id: 'chat', label: 'Chat', icon: MessageCircle },
+]
+
 export default function TabBar({
   activeTab = 'home',
   onSelectTab,
@@ -33,153 +39,100 @@ export default function TabBar({
   className = '',
   style,
 }) {
-  const { isTablet } = useViewport()
+  const isTabActive = (tabId) => {
+    if (tabId === 'book') {
+      return activeTab === 'book' || activeTab === 'schedule'
+    }
+    return activeTab === tabId
+  }
 
-  const iconClass = isTablet ? 'h-[26px] w-[26px]' : 'h-[24px] w-[24px]'
-  const labelClass = isTablet ? 'text-[12px]' : 'text-[11px]'
+  const handleTabClick = (tabId) => {
+    if (tabId === 'book') {
+      if (onSelectTab) onSelectTab('book')
+      else if (onCenterClick) onCenterClick()
+      return
+    }
+    if (onSelectTab) onSelectTab(tabId)
+  }
 
   return (
     <nav
-      aria-label="App navigation"
-      style={style}
-      className={`relative z-20 w-full shrink-0 rounded-t-[28px] bg-white border-t border-[#F0EAE0] pb-[env(safe-area-inset-bottom)] md:pb-[14px] shadow-[0_-6px_24px_rgba(20,30,60,0.06)] select-none ${className}`}
+      role="tablist"
+      aria-label="Bottom Navigation"
+      style={{
+        bottom: 'max(12px, env(safe-area-inset-bottom, 12px))',
+        ...style,
+      }}
+      className={`absolute left-[10px] right-[10px] max-w-[580px] mx-auto z-40 rounded-full bg-white border border-[var(--border-color,#F0EAE0)] p-[6px] shadow-[0_4px_24px_rgba(20,30,60,0.08)] pointer-events-auto select-none ${className}`}
     >
-      <div
-        className={`flex ${
-          isTablet ? 'h-[72px] max-w-[640px] px-6' : 'h-[66px] px-3'
-        } mx-auto items-center justify-between`}
-      >
-        {/* Tab 1: Home */}
-        <button
-          type="button"
-          onClick={() => onSelectTab('home')}
-          aria-label="Home"
-          className={`flex min-h-[44px] min-w-[56px] flex-col items-center justify-center rounded-2xl transition-transform duration-150 active:scale-[0.92] cursor-pointer ${
-            activeTab === 'home'
-              ? 'text-[#EF5A78]'
-              : 'text-[#8A8FA3] hover:text-[#121A2B]'
-          }`}
-        >
-          <div className={`relative flex ${isTablet ? 'h-[26px] w-[26px]' : 'h-[24px] w-[24px]'} items-center justify-center`}>
-            <Home
-              className={`${iconClass} transition-transform ${
-                activeTab === 'home' ? 'animate-tab-pop' : ''
-              }`}
-              strokeWidth={1.75}
-            />
-          </div>
-          <span
-            className={`mt-1 ${labelClass} leading-none ${
-              activeTab === 'home' ? 'font-bold text-[#EF5A78]' : 'font-medium text-[#8A8FA3]'
-            }`}
-          >
-            Home
-          </span>
-        </button>
+      <div className="flex items-center justify-between w-full gap-1">
+        {TABS.map((tab) => {
+          const Icon = tab.icon
+          const isActive = isTabActive(tab.id)
 
-        {/* Tab 2: Services */}
-        <button
-          type="button"
-          onClick={() => onSelectTab('services')}
-          aria-label="Services"
-          className={`flex min-h-[44px] min-w-[56px] flex-col items-center justify-center rounded-2xl transition-transform duration-150 active:scale-[0.92] cursor-pointer ${
-            activeTab === 'services'
-              ? 'text-[#EF5A78]'
-              : 'text-[#8A8FA3] hover:text-[#121A2B]'
-          }`}
-        >
-          <div className={`relative flex ${isTablet ? 'h-[26px] w-[26px]' : 'h-[24px] w-[24px]'} items-center justify-center`}>
-            <Brush
-              className={`${iconClass} transition-transform ${
-                activeTab === 'services' ? 'animate-tab-pop' : ''
-              }`}
-              strokeWidth={1.75}
-            />
-          </div>
-          <span
-            className={`mt-1 ${labelClass} leading-none ${
-              activeTab === 'services' ? 'font-bold text-[#EF5A78]' : 'font-medium text-[#8A8FA3]'
-            }`}
-          >
-            Services
-          </span>
-        </button>
+          return (
+            <button
+              key={tab.id}
+              type="button"
+              role="tab"
+              aria-selected={isActive}
+              aria-label={tab.label}
+              tabIndex={isActive ? 0 : -1}
+              onClick={() => handleTabClick(tab.id)}
+              className="group relative flex flex-1 min-w-0 min-h-[44px] flex-col items-center justify-center rounded-full py-1.5 px-0.5 cursor-pointer select-none transition-all duration-200 motion-reduce:transition-none focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[var(--primary,#EF5A78)]"
+              style={{
+                backgroundColor: isActive
+                  ? 'var(--primary-tint, #FDE3E9)'
+                  : 'transparent',
+                color: isActive
+                  ? 'var(--primary-text, var(--primary, #EF5A78))'
+                  : 'var(--text-muted, #8A8FA3)',
+              }}
+            >
+              {/* Icon 20px on top */}
+              <div className="relative flex h-5 w-5 items-center justify-center">
+                <Icon
+                  className="h-5 w-5 shrink-0 transition-transform duration-200 group-active:scale-90 motion-reduce:transition-none"
+                  strokeWidth={2}
+                  style={{
+                    color: isActive
+                      ? 'var(--primary, #EF5A78)'
+                      : 'currentColor',
+                  }}
+                />
 
-        {/* Center: Raised 64px Coral Circle (opens Schedule / Select Date & Time) */}
-        <div className="flex flex-col items-center justify-center">
-          <button
-            type="button"
-            onClick={onCenterClick}
-            aria-label="Select Date & Time"
-            className="-mt-[26px] flex h-16 w-16 items-center justify-center rounded-full bg-[#EF5A78] text-white ring-[5px] ring-white shadow-[0_10px_26px_rgba(239,90,120,0.48)] hover:brightness-105 active:scale-[0.92] transition-all duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#EF5A78] cursor-pointer"
-          >
-            <CalendarPlus className="h-7 w-7 text-white stroke-[2.2]" />
-          </button>
-        </div>
+                {/* Bookings unread badge: small primary-colored circle with white number and white ring */}
+                {tab.id === 'bookings' && upcomingCount > 0 && (
+                  <span
+                    className="absolute -top-1 -right-2 flex h-4 min-w-[16px] px-1 items-center justify-center rounded-full text-[9px] font-bold text-white ring-2 ring-white shadow-xs select-none"
+                    style={{ backgroundColor: 'var(--primary, #EF5A78)' }}
+                    aria-label={`${upcomingCount} upcoming bookings`}
+                  >
+                    {upcomingCount}
+                  </span>
+                )}
 
-        {/* Tab 3: Bookings */}
-        <button
-          type="button"
-          onClick={() => onSelectTab('bookings')}
-          aria-label="Bookings"
-          className={`flex min-h-[44px] min-w-[56px] flex-col items-center justify-center rounded-2xl transition-transform duration-150 active:scale-[0.92] cursor-pointer ${
-            activeTab === 'bookings'
-              ? 'text-[#EF5A78]'
-              : 'text-[#8A8FA3] hover:text-[#121A2B]'
-          }`}
-        >
-          <div className={`relative flex ${isTablet ? 'h-[26px] w-[26px]' : 'h-[24px] w-[24px]'} items-center justify-center`}>
-            <CalendarCheck
-              className={`${iconClass} transition-transform ${
-                activeTab === 'bookings' ? 'animate-tab-pop' : ''
-              }`}
-              strokeWidth={1.75}
-            />
-            {upcomingCount > 0 && (
-              <span className="absolute -top-1 -right-1.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-[#EF5A78] px-1 text-[9.5px] font-bold text-white shadow-xs">
-                {upcomingCount}
+                {/* Optional Chat indicator */}
+                {tab.id === 'chat' && hasUnreadChat && (
+                  <span
+                    className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full ring-2 ring-white"
+                    style={{ backgroundColor: 'var(--primary, #EF5A78)' }}
+                    aria-label="Unread messages"
+                  />
+                )}
+              </div>
+
+              {/* Label 11px below */}
+              <span
+                className={`mt-0.5 text-[11px] leading-tight select-none text-center truncate max-w-full whitespace-nowrap ${
+                  isActive ? 'font-bold' : 'font-semibold'
+                }`}
+              >
+                {tab.label}
               </span>
-            )}
-          </div>
-          <span
-            className={`mt-1 ${labelClass} leading-none ${
-              activeTab === 'bookings' ? 'font-bold text-[#EF5A78]' : 'font-medium text-[#8A8FA3]'
-            }`}
-          >
-            Bookings
-          </span>
-        </button>
-
-        {/* Tab 4: Chat */}
-        <button
-          type="button"
-          onClick={() => onSelectTab('chat')}
-          aria-label="Chat"
-          className={`flex min-h-[44px] min-w-[56px] flex-col items-center justify-center rounded-2xl transition-transform duration-150 active:scale-[0.92] cursor-pointer ${
-            activeTab === 'chat'
-              ? 'text-[#EF5A78]'
-              : 'text-[#8A8FA3] hover:text-[#121A2B]'
-          }`}
-        >
-          <div className={`relative flex ${isTablet ? 'h-[26px] w-[26px]' : 'h-[24px] w-[24px]'} items-center justify-center`}>
-            <MessageCircle
-              className={`${iconClass} transition-transform ${
-                activeTab === 'chat' ? 'animate-tab-pop' : ''
-              }`}
-              strokeWidth={1.75}
-            />
-            {hasUnreadChat && (
-              <span className="absolute top-0 right-0 h-2 w-2 rounded-full bg-[#EF5A78] ring-2 ring-white" />
-            )}
-          </div>
-          <span
-            className={`mt-1 ${labelClass} leading-none ${
-              activeTab === 'chat' ? 'font-bold text-[#EF5A78]' : 'font-medium text-[#8A8FA3]'
-            }`}
-          >
-            Chat
-          </span>
-        </button>
+            </button>
+          )
+        })}
       </div>
     </nav>
   )

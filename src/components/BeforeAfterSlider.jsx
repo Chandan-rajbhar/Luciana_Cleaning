@@ -159,16 +159,7 @@ export default function BeforeAfterSlider({
         className="relative aspect-[4/3] w-full cursor-ew-resize select-none overflow-hidden rounded-[24px] bg-[#121A2B] shadow-[0_6px_22px_rgba(20,30,60,0.08)] border border-[#F0EAE0]"
       >
         {/* Layer 1: "Before" Image (Base layer, underneath) */}
-        <img
-          src={imgBeforeSrc}
-          alt="Room before cleaning"
-          onError={(e) => {
-            if (e.currentTarget.src !== fallbackBefore) {
-              e.currentTarget.src = fallbackBefore
-            }
-          }}
-          className="absolute inset-0 h-full w-full object-cover object-center pointer-events-none select-none"
-        />
+
 
         {/* Layer 2: "After" Image (Top layer, clipped to the right of divider) */}
         <div

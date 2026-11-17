@@ -61,6 +61,19 @@ function useViewportModeState() {
           'data-orientation',
           next.isLandscape ? 'landscape' : 'portrait'
         )
+        // Set --app-h fallback from visualViewport.height (or innerHeight)
+        const visualH =
+          typeof window !== 'undefined' && window.visualViewport
+            ? window.visualViewport.height
+            : typeof window !== 'undefined'
+            ? window.innerHeight
+            : 844
+        if (visualH) {
+          document.documentElement.style.setProperty(
+            '--app-h',
+            `${Math.round(visualH)}px`
+          )
+        }
       }
     }
 
@@ -69,6 +82,10 @@ function useViewportModeState() {
 
     window.addEventListener('resize', update)
     window.addEventListener('orientationchange', update)
+    if (typeof window !== 'undefined' && window.visualViewport) {
+      window.visualViewport.addEventListener('resize', update)
+      window.visualViewport.addEventListener('scroll', update)
+    }
 
     // Watch media queries for device category, pointer, and orientation
     const queries = [
@@ -103,6 +120,10 @@ function useViewportModeState() {
     return () => {
       window.removeEventListener('resize', update)
       window.removeEventListener('orientationchange', update)
+      if (typeof window !== 'undefined' && window.visualViewport) {
+        window.visualViewport.removeEventListener('resize', update)
+        window.visualViewport.removeEventListener('scroll', update)
+      }
       mqls.forEach((mql) => {
         if (mql.removeEventListener) {
           mql.removeEventListener('change', handleMql)

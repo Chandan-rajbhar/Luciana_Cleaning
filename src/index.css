@@ -1,9 +1,53 @@
 @import "tailwindcss";
 
 :root {
+  --primary: #EF5A78;
+  --primary-tint: #FDE3E9;
+  --primary-tint-hover: rgba(239, 90, 120, 0.22);
+  --primary-text: #C72C4F;
+  --primary-border: rgba(239, 90, 120, 0.25);
+  --success: #2E9E5B;
+  --success-bg: #E6F6EC;
+  --success-border: rgba(46, 158, 91, 0.25);
+  --warning: #EA580C;
+  --warning-bg: #FFF4E5;
+  --warning-border: rgba(234, 88, 12, 0.25);
+  --text-primary: #121A2B;
+  --text-muted: #8A8FA3;
+  --bg-card: #FFFFFF;
+  --border-color: #F0EAE0;
   --bar-h: 74px;
   --header-h: 64px;
   --scroll-pb: calc(var(--bar-h) + 16px + env(safe-area-inset-bottom));
+}
+
+/* Multi-theme support with accessible AA contrast on active nav pill */
+[data-theme="coral"] {
+  --primary: #EF5A78;
+  --primary-tint: #FDE3E9;
+  --primary-text: #C72C4F;
+  --primary-border: rgba(239, 90, 120, 0.25);
+}
+
+[data-theme="lime"] {
+  --primary: #65A30D;
+  --primary-tint: #ECFCCB;
+  --primary-text: #365314;
+  --primary-border: rgba(101, 163, 13, 0.25);
+}
+
+[data-theme="mint"] {
+  --primary: #0D9488;
+  --primary-tint: #CCFBF1;
+  --primary-text: #115E59;
+  --primary-border: rgba(13, 148, 136, 0.25);
+}
+
+[data-theme="lavender"] {
+  --primary: #7C3AED;
+  --primary-tint: #EDE9FE;
+  --primary-text: #5B21B6;
+  --primary-border: rgba(124, 58, 237, 0.25);
 }
 
 [data-device="tablet"] {
@@ -17,15 +61,93 @@ body,
 #root {
   width: 100%;
   height: 100%;
-  height: 100dvh;
   margin: 0;
   padding: 0;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+/* Widths up to 1024px and touch-first devices (phones and tablets):
+   #app-shell is fixed with inset: 0, width: 100%, and height: var(--app-h, 100%)
+   matching visible browser viewport with zero vh/dvh dependency */
+@media (max-width: 1024.98px), (pointer: coarse) and (max-width: 1366.98px) {
+  #app-shell {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: var(--app-h, 100%);
+    overflow: hidden;
+  }
+}
+
+[data-device="phone"] #app-shell,
+[data-device="tablet"] #app-shell {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: var(--app-h, 100%);
+  overflow: hidden;
+}
+
+/* Desktop Phone Frame: #app-shell fills 100% of the 390x844 scaled inner screen */
+@media (min-width: 1025px) and (hover: hover) and (pointer: fine) {
+  #app-shell {
+    position: relative;
+    inset: auto;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+  }
+}
+
+[data-device="desktop"] #app-shell {
+  position: relative;
+  inset: auto;
+  width: 100%;
+  height: 100%;
   overflow: hidden;
 }
 
 [data-device="desktop"] body,
 html:not([data-device]) body {
   background-color: #0b1a33;
+}
+
+/* Desktop Phone Frame Styling & Scaling: Desktop only */
+@media (min-width: 1025px) and (hover: hover) and (pointer: fine) {
+  :root {
+    --frame-scale: 0.85;
+  }
+
+  .desktop-phone-stage {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  .desktop-phone-frame {
+    flex: none;
+    transform: scale(var(--frame-scale, 0.85));
+    transform-origin: center;
+  }
+}
+
+[data-device="desktop"] .desktop-phone-stage {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+[data-device="desktop"] .desktop-phone-frame {
+  flex: none;
+  transform: scale(var(--frame-scale, 0.85));
+  transform-origin: center;
 }
 
 [data-device="tablet"] body,
@@ -473,6 +595,7 @@ html:not([data-device]) body {
   .animate-sheet-bubble-3,
   .animate-progress-fill,
   .animate-pop-in,
+  .animate-spin,
   .stagger-item {
     animation: plainFadeIn 200ms ease-out both !important;
     animation-delay: 0ms !important;

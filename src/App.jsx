@@ -29,6 +29,7 @@ import SideMenu from './components/SideMenu'
 import EstimateSheet from './components/EstimateSheet'
 import CallDialog from './components/CallDialog'
 import AmbientBackground from './components/AmbientBackground'
+import SheetContext from './context/SheetContext'
 import { TopProgressBar } from './components/VisualEffects'
 import { DEFAULT_BOOKING_DRAFT } from './data/bookingDraft'
 import { useViewport } from './hooks/useViewportMode'
@@ -62,6 +63,22 @@ export default function App() {
   const [selectedAddOns, setSelectedAddOns] = useState([])
   const [requestedCleaner, setRequestedCleaner] = useState(null)
   const [isCallOpen, setIsCallOpen] = useState(false)
+
+  // Track any open portal bottom sheets so bottom nav bar slides down and hides smoothly
+  const [activeSheetCount, setActiveSheetCount] = useState(0)
+
+  const registerSheet = useCallback(() => {
+    setActiveSheetCount((c) => c + 1)
+    let cleanedUp = false
+    return () => {
+      if (!cleanedUp) {
+        cleanedUp = true
+        setActiveSheetCount((c) => Math.max(0, c - 1))
+      }
+    }
+  }, [])
+
+  const isAnySheetOpen = activeSheetCount > 0 || isEstimateOpen || isCallOpen || isMenuOpen
 
   // Shared booking-draft state for all 7 interactive features
   const [bookingDraft, setBookingDraft] = useState(DEFAULT_BOOKING_DRAFT)
@@ -327,6 +344,8 @@ export default function App() {
       ? 'home'
       : currentScreen === 'services' || currentScreen === 'detail'
       ? 'services'
+      : currentScreen === 'schedule'
+      ? 'book'
       : ['bookings', 'my-bookings', 'success', 'booking-details'].includes(currentScreen)
       ? 'bookings'
       : currentScreen === 'chat'
@@ -341,13 +360,15 @@ export default function App() {
       : 'animate-screen-fade'
 
   return (
-    <Phone>
-      {/* Stationary App Shell Container: fixed from frame 0 */}
-      <div
-        className={`relative z-10 flex-1 h-full w-full overflow-hidden bg-[#FAF6F0] text-[#121A2B] flex flex-col ${
-          isIntroActive ? 'app-intro-active' : ''
-        }`}
-      >
+    <SheetContext.Provider value={{ registerSheet, isAnySheetOpen }}>
+      <Phone>
+        {/* Stationary App Shell Container: fixed from frame 0 */}
+        <div
+          id="app-shell"
+          className={`relative z-10 flex-1 h-full w-full overflow-hidden bg-[#FAF6F0] text-[#121A2B] flex flex-col ${
+            isIntroActive ? 'app-intro-active' : ''
+          }`}
+        >
         {/* Persistent Ambient Background at app-shell level as sibling of scroll area */}
         <div
           className="absolute inset-0 overflow-hidden pointer-events-none z-0"
@@ -358,9 +379,9 @@ export default function App() {
           />
         </div>
 
-        {/* Sticky Unified App Header (hidden on Chat & Splash screens) - stationary, visible from frame 0 */}
+        {/* Unified App Header (shrink-0 in flex column; hidden on Chat & Splash) */}
         {currentScreen !== 'chat' && currentScreen !== 'splash' && (
-          <div className={`${isDesktop ? 'absolute' : 'fixed'} top-0 inset-x-0 z-30`}>
+          <div className="shrink-0 z-30 relative w-full">
             <AppHeader
               currentScreen={currentScreen}
               onBack={handleBack}
@@ -386,7 +407,7 @@ export default function App() {
 
         {/* Top progress bar for Chat screen */}
         {currentScreen === 'chat' && (
-          <div className={`${isDesktop ? 'absolute' : 'fixed'} top-0 inset-x-0 z-30 pointer-events-none`}>
+          <div className="shrink-0 z-30 relative w-full pointer-events-none">
             <TopProgressBar
               isActive={progressActive}
               duration={progressDuration}
@@ -395,77 +416,36 @@ export default function App() {
           </div>
         )}
 
-        {/* Bottom Navigation Bar (4-Tab Layout with Raised Center Book Button) - stationary, visible from frame 0 */}
-        {!hideTabBar && (
-          <div className={`${isDesktop ? 'absolute' : 'fixed'} bottom-0 inset-x-0 z-30 pointer-events-auto`}>
-            <TabBar
-              activeTab={activeTab}
-              onSelectTab={(tabId) => {
-                if (tabId === 'home') {
-                  navigateTo('home', { dir: 'fade', reset: true })
-                } else if (tabId === 'services') {
-                  navigateTo('services', { category: 'all', dir: 'fade' })
-                } else if (tabId === 'bookings') {
-                  navigateTo('bookings', { dir: 'fade' })
-                } else if (tabId === 'chat') {
-                  navigateTo('chat', { dir: 'fade' })
-                }
-              }}
-              onCenterClick={() =>
-                navigateTo('schedule', {
-                  serviceId: currentServiceId,
-                  dir: 'forward',
-                })
-              }
-              upcomingCount={bookings?.upcoming?.length || 0}
-              hasUnreadChat={false}
-            />
-          </div>
-        )}
-
-        {/* Screen Content Wrapper: clipped between header and bottom bar during intro */}
+        {/* Screen Content Wrapper: flex-1 min-h-0 in flex column */}
         <div
-          className={`relative z-10 flex-1 h-full w-full ${
+          className={`relative z-10 flex-1 min-h-0 w-full flex flex-col ${
             isIntroActive ? 'overflow-hidden' : ''
           }`}
-          style={
-            isIntroActive
-              ? {
-                  clipPath:
-                    'inset(var(--header-h) 0px calc(var(--bar-h) + env(safe-area-inset-bottom, 0px)) 0px)',
-                }
-              : undefined
-          }
         >
           {/* Scrollable Screen Viewport */}
-                <main
-                  ref={scrollContainerRef}
-                  onScroll={handleScroll}
-                  style={{
-                    paddingTop: !['chat', 'splash'].includes(currentScreen)
-                      ? 'var(--header-h)'
-                      : 0,
-                  }}
-                  className={`no-scrollbar relative z-10 h-full w-full overflow-x-hidden ${
-                    isMenuOpen || ['chat', 'detail', 'schedule', 'success', 'splash'].includes(currentScreen)
-                      ? 'overflow-hidden flex flex-col'
-                      : 'overflow-y-auto'
-                  } [overscroll-behavior:contain]`}
-                >
-                  <div
-                    key={transitionKey}
-                    className={`${
-                      isIntroActive
-                        ? 'animate-content-rise'
-                        : animClass
-                    } ${
-                      tapsLocked ? 'pointer-events-none' : ''
-                    } ${
-                      ['chat', 'detail', 'schedule', 'success', 'splash'].includes(currentScreen)
-                        ? 'h-full flex flex-col'
-                        : 'w-full'
-                    } relative z-10`}
-                  >
+          <main
+            ref={scrollContainerRef}
+            onScroll={handleScroll}
+            className={`no-scrollbar relative z-10 flex-1 min-h-0 w-full overflow-x-hidden ${
+              isMenuOpen || ['chat', 'detail', 'schedule', 'success', 'splash'].includes(currentScreen)
+                ? 'overflow-hidden flex flex-col'
+                : 'overflow-y-auto pb-28'
+            } [overscroll-behavior:contain]`}
+          >
+            <div
+              key={transitionKey}
+              className={`${
+                isIntroActive
+                  ? 'animate-content-rise'
+                  : animClass
+              } ${
+                tapsLocked ? 'pointer-events-none' : ''
+              } ${
+                ['chat', 'detail', 'schedule', 'success', 'splash'].includes(currentScreen)
+                  ? 'h-full flex flex-col'
+                  : 'w-full'
+              } relative z-10`}
+            >
                   {/* Screen 1: Home & Discovery */}
                   {currentScreen === 'home' && (
                     <HomeScreen
@@ -670,6 +650,45 @@ export default function App() {
               </main>
             </div>
 
+            {/* Bottom Navigation Bar (Floating Pill) - slides down & fades out when any sheet opens */}
+            {!hideTabBar && (
+              <div
+                className={`absolute bottom-0 inset-x-0 z-40 pointer-events-none transition-all duration-300 ease-out motion-reduce:transition-none ${
+                  isAnySheetOpen
+                    ? 'translate-y-28 opacity-0'
+                    : 'translate-y-0 opacity-100'
+                }`}
+              >
+                <TabBar
+                  activeTab={activeTab}
+                  onSelectTab={(tabId) => {
+                    if (tabId === 'home') {
+                      navigateTo('home', { dir: 'fade', reset: true })
+                    } else if (tabId === 'services') {
+                      navigateTo('services', { category: 'all', dir: 'fade' })
+                    } else if (tabId === 'book' || tabId === 'schedule') {
+                      navigateTo('schedule', {
+                        serviceId: currentServiceId,
+                        dir: 'forward',
+                      })
+                    } else if (tabId === 'bookings') {
+                      navigateTo('bookings', { dir: 'fade' })
+                    } else if (tabId === 'chat') {
+                      navigateTo('chat', { dir: 'fade' })
+                    }
+                  }}
+                  onCenterClick={() =>
+                    navigateTo('schedule', {
+                      serviceId: currentServiceId,
+                      dir: 'forward',
+                    })
+                  }
+                  upcomingCount={bookings?.upcoming?.length || 0}
+                  hasUnreadChat={false}
+                />
+              </div>
+            )}
+
             {/* In-Frame Side Menu Drawer (Slides in from Left) */}
               <SideMenu
                 isOpen={isMenuOpen}
@@ -714,6 +733,12 @@ export default function App() {
                 }}
               />
 
+              {/* Dedicated Portal Mount for BottomSheets strictly inside App Shell */}
+              <div
+                id="sheet-portal"
+                className="absolute inset-0 z-[60] pointer-events-none overflow-hidden"
+              />
+
               {/* In-Frame Toast Notification */}
               {toast && (
                 <div
@@ -729,8 +754,8 @@ export default function App() {
                     maxWidth: isTablet ? 'min(420px, calc(100% - 48px))' : 'calc(100% - 32px)',
                     boxSizing: 'border-box',
                   }}
-                  className={`pointer-events-none fixed ${
-                    isDesktop ? 'md:absolute' : ''
+                  className={`pointer-events-none ${
+                    isDesktop ? 'absolute' : 'fixed'
                   } z-[100] flex items-center justify-center gap-2.5 rounded-[16px] bg-[#121A2B]/95 px-4 py-3 text-white shadow-[0_8px_30px_rgba(0,0,0,0.35)] ring-1 ring-white/10 backdrop-blur-md ${
                     toast.isExiting ? 'animate-toast-out' : 'animate-toast-in'
                   }`}
@@ -747,5 +772,6 @@ export default function App() {
               )}
             </div>
         </Phone>
+    </SheetContext.Provider>
   )
 }

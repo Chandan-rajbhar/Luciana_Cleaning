@@ -15,6 +15,23 @@
       href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
+    <script>
+      (function() {
+        function updateAppH() {
+          var h = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+          if (h) {
+            document.documentElement.style.setProperty('--app-h', Math.round(h) + 'px');
+          }
+        }
+        updateAppH();
+        window.addEventListener('resize', updateAppH);
+        window.addEventListener('orientationchange', updateAppH);
+        if (window.visualViewport) {
+          window.visualViewport.addEventListener('resize', updateAppH);
+          window.visualViewport.addEventListener('scroll', updateAppH);
+        }
+      })();
+    </script>
   </head>
   <body class="text-[#121A2B] antialiased selection:bg-[#EF5A78] selection:text-white">
     <div id="root"></div>

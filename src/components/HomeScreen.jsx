@@ -26,6 +26,7 @@ import { SparklesGroup, SheetBubbles } from './VisualEffects'
 import ZipChecker from './ZipChecker'
 import BeforeAfterSlider from './BeforeAfterSlider'
 import HomeSizePriceWidget from './HomeSizePriceWidget'
+import CleanerProfileSheet from './CleanerProfileSheet'
 import { useViewport } from '../hooks/useViewportMode'
 
 const ADD_ONS_DATA = [
@@ -769,91 +770,17 @@ export default function HomeScreen({
         </div>
       </div>
 
-      {/* In-Frame Cleaner Profile Bottom Sheet (strictly inside phone frame) */}
-      {activeCleaner && (
-        <div
-          className="absolute inset-0 z-50 flex flex-col justify-end"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="cleaner-sheet-title"
-        >
-          <div
-            onClick={() => setActiveCleaner(null)}
-            className="animate-backdrop-in absolute inset-0 bg-black/45 backdrop-blur-xs"
-            aria-hidden="true"
-          />
-
-          <div className="animate-sheet-up relative z-10 w-full max-w-[560px] mx-auto rounded-t-[28px] bg-[#FAF6F0] p-5 pb-6 shadow-[0_-12px_40px_rgba(20,30,60,0.22)] border-t border-[#F0EAE0]">
-            {/* Sheet rising bubbles */}
-            <SheetBubbles />
-
-            {/* Grab handle */}
-            <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-gray-300" aria-hidden="true" />
-
-            <div className="flex items-start justify-between pb-3 border-b border-[#EAE3D8]">
-              <div className="flex items-center gap-3">
-                <div className="animate-pop-rotate relative h-18 w-18 shrink-0 overflow-hidden rounded-full ring-3 ring-[#FDE4EA] shadow-md">
-                  <img
-                    src={activeCleaner.image}
-                    alt={activeCleaner.name}
-                    className="h-full w-full object-cover"
-                  />
-                </div>
-                <div>
-                  <h4
-                    id="cleaner-sheet-title"
-                    className="text-[17px] font-extrabold text-[#121A2B]"
-                  >
-                    {activeCleaner.name}
-                  </h4>
-                  <span className="inline-flex items-center gap-1 text-[11px] font-bold text-[#2E9E5B]">
-                    <ShieldCheck className="h-3.5 w-3.5 stroke-[2.4]" />
-                    Vetted and background checked
-                  </span>
-                  <p className="text-[11px] font-semibold text-[#7A8194] mt-0.5">
-                    {activeCleaner.experience}
-                  </p>
-                </div>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => setActiveCleaner(null)}
-                aria-label="Close cleaner sheet"
-                className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-[#7A8194] shadow-xs active:scale-[0.94] transition-all"
-              >
-                <X className="h-4 w-4 stroke-[2.4]" />
-              </button>
-            </div>
-
-            {/* Specialty / Bio */}
-            <div className="mt-3.5 rounded-2xl bg-white p-3.5 shadow-xs border border-gray-100">
-              <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#EF5A78]">
-                SPECIALTY
-              </span>
-              <p className="mt-0.5 text-[12px] font-medium leading-relaxed text-[#121A2B]">
-                {activeCleaner.specialty}. Certified in hospital-grade non-toxic sanitizing for Florida residences.
-              </p>
-            </div>
-
-            {/* Action Button */}
-            <div className="mt-4">
-              <button
-                type="button"
-                onClick={() => {
-                  const cleanerName = activeCleaner.name
-                  setActiveCleaner(null)
-                  onShowToast(`${cleanerName} requested for your next clean!`)
-                  onOpenEstimate(SERVICES[0].id, selectedAddOns, cleanerName)
-                }}
-                className="flex min-h-[46px] w-full items-center justify-center gap-2 rounded-full bg-[#EF5A78] py-3 text-[13.5px] font-extrabold text-white shadow-[0_6px_20px_rgba(239,90,120,0.38)] hover:brightness-105 active:scale-[0.97] transition-all cursor-pointer"
-              >
-                Request {activeCleaner.name}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* In-Frame Cleaner Profile Bottom Sheet (Portaled via BottomSheet) */}
+      <CleanerProfileSheet
+        cleaner={activeCleaner}
+        isOpen={Boolean(activeCleaner)}
+        onClose={() => setActiveCleaner(null)}
+        onRequestCleaner={(cleanerName) => {
+          setActiveCleaner(null)
+          onShowToast(`${cleanerName} requested for your next clean!`)
+          onOpenEstimate(SERVICES[0].id, selectedAddOns, cleanerName)
+        }}
+      />
     </div>
   )
 }
