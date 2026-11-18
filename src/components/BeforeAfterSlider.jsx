@@ -138,13 +138,8 @@ export default function BeforeAfterSlider({
   return (
     <div className={`stagger-item w-full ${className}`}>
       {title && (
-        <div className="mb-2.5 flex items-center justify-between">
-          <div>
-            <h3 className="text-[17px] font-extrabold text-[#121A2B]">{title}</h3>
-            {subtitle && (
-              <p className="text-[11.5px] font-medium text-[#7A8194]">{subtitle}</p>
-            )}
-          </div>
+        <div className="mb-3 flex items-center justify-between">
+          <h3 className="text-[16px] font-extrabold text-[#121A2B]">{title}</h3>
           <span className="rounded-full bg-[#FAF6F0] px-2.5 py-1 text-[10.5px] font-bold text-[#8A8FA3] border border-[#F0EAE0]">
             Interactive
           </span>
@@ -164,7 +159,7 @@ export default function BeforeAfterSlider({
         {/* Layer 1: "After" Image (Underneath / Base layer, visible on right side) */}
         <img
           src={imgAfterSrc}
-          alt="Room after deep cleaning"
+          alt={subtitle ? `After: ${subtitle}` : 'Room after deep cleaning'}
           onError={(e) => {
             if (e.currentTarget.src !== fallbackAfter) {
               e.currentTarget.src = fallbackAfter
@@ -185,7 +180,7 @@ export default function BeforeAfterSlider({
         >
           <img
             src={imgBeforeSrc}
-            alt="Room before cleaning"
+            alt={subtitle ? `Before: ${subtitle}` : 'Room before cleaning'}
             onError={(e) => {
               if (e.currentTarget.src !== fallbackBefore) {
                 e.currentTarget.src = fallbackBefore
@@ -219,7 +214,7 @@ export default function BeforeAfterSlider({
         {/* Layer 5: Draggable Center 40px Round Handle */}
         <div
           role="slider"
-          aria-label="Before and after clean reveal slider"
+          aria-label={subtitle || 'Before and after clean reveal slider'}
           aria-valuenow={Math.round(sliderPos)}
           aria-valuemin={4}
           aria-valuemax={96}

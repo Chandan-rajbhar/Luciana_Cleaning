@@ -14,7 +14,7 @@ import FrequencyToggle from './FrequencyToggle'
 import RoomAccordion from './RoomAccordion'
 import { FREQUENCY_OPTIONS } from '../data/bookingDraft'
 import { useViewport } from '../hooks/useViewportMode'
-
+// 
 /**
  * Screen 2: Service Detail
  * Content scrolls under shared sticky AppHeader.
@@ -59,13 +59,12 @@ export default function ServiceDetailScreen({
   // Photo banner block
   const photoBanner = (
     <div
-      className={`animate-pop-rotate stagger-item relative w-full overflow-hidden rounded-[24px] bg-slate-900 shadow-[0_6px_20px_rgba(20,30,60,0.08)] ${
-        isTablet
+      className={`animate-pop-rotate stagger-item relative w-full overflow-hidden rounded-[24px] bg-slate-900 shadow-[0_6px_20px_rgba(20,30,60,0.08)] ${isTablet
           ? isLandscape
             ? 'h-[240px]'
             : 'h-[360px]'
           : 'aspect-[16/10]'
-      }`}
+        }`}
     >
       <img
         src={service.image}
@@ -89,9 +88,8 @@ export default function ServiceDetailScreen({
         className="absolute top-3.5 right-3.5 flex h-9 w-9 items-center justify-center rounded-full bg-white/90 shadow-sm backdrop-blur-xs active:scale-[0.93] transition-all cursor-pointer"
       >
         <Heart
-          className={`h-4 w-4 ${
-            isLiked ? 'fill-[#EF5A78] text-[#EF5A78]' : 'text-[#EF5A78]'
-          } stroke-[2.4]`}
+          className={`h-4 w-4 ${isLiked ? 'fill-[#EF5A78] text-[#EF5A78]' : 'text-[#EF5A78]'
+            } stroke-[2.4]`}
         />
       </button>
 
@@ -241,11 +239,11 @@ export default function ServiceDetailScreen({
             </div>
 
             <div className="space-y-4">
-              <RoomAccordion middleContent={sliderBlock} />
+              <RoomAccordion topContent={sliderBlock} />
             </div>
           </div>
         ) : (
-          /* Portrait single-column layout: Photo -> Title/Price -> Frequency -> What's Included (Kitchen) -> Slider -> Remaining Rooms -> Features -> About */
+          /* Portrait single-column layout: Photo -> Title/Price -> Frequency -> What's Included (Header -> Slider -> Full Rooms list: Kitchen, Bathrooms, Living, Bedrooms) -> Features -> About */
           <div className={`${isTablet ? 'max-w-[720px] mx-auto' : ''} space-y-4`}>
             {photoBanner}
             {titleAndPrice}
@@ -255,7 +253,7 @@ export default function ServiceDetailScreen({
               showPriceSummary={true}
               hourlyRate={service.hourlyRate}
             />
-            <RoomAccordion middleContent={sliderBlock} />
+            <RoomAccordion topContent={sliderBlock} />
             {featureCards}
             {aboutCard}
           </div>

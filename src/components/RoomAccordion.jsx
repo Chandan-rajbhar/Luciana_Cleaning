@@ -76,8 +76,9 @@ const ROOM_DATA = [
  * - Progress chip on each card header ("3/5")
  * - Kitchen open by default
  */
-export default function RoomAccordion({ className = '', middleContent = null }) {
+export default function RoomAccordion({ className = '', topContent = null, middleContent = null }) {
   const [openRoomId, setOpenRoomId] = useState('kitchen')
+  const slider = topContent || middleContent
 
   // Track checked state per room: { kitchen: { 0: true, 1: true }, ... }
   // Default: first 3 checked on kitchen as preview
@@ -204,13 +205,10 @@ export default function RoomAccordion({ className = '', middleContent = null }) 
     )
   }
 
-  const firstRoom = ROOM_DATA[0]
-  const remainingRooms = ROOM_DATA.slice(1)
-
   return (
     <div className={`stagger-item ${className}`}>
-      {/* 1. Header */}
-      <div className="flex items-center justify-between pb-2.5">
+      {/* 1. Header: What's Included */}
+      <div className="flex items-center justify-between pb-1">
         <div>
           <h3 className="text-[15px] font-extrabold text-[#121A2B]">
             What's Included
@@ -224,19 +222,16 @@ export default function RoomAccordion({ className = '', middleContent = null }) 
         </span>
       </div>
 
-      {/* 2. First room (Kitchen) */}
-      {renderRoomCard(firstRoom)}
-
-      {/* 3. Middle Slot: "See the difference" slider with exact 20px spacing above & below */}
-      {middleContent && (
-        <div className="py-5">
-          {middleContent}
+      {/* 2. "See the difference" slider directly ABOVE Kitchen card */}
+      {slider && (
+        <div className="pt-4 pb-4.5">
+          {slider}
         </div>
       )}
 
-      {/* 4. Remaining rooms (Bathrooms, Living Areas, Bedrooms) */}
-      <div className={`${middleContent ? '' : 'mt-2.5'} space-y-2.5`}>
-        {remainingRooms.map(renderRoomCard)}
+      {/* 3. Full rooms list in one piece (Kitchen, Bathrooms, Living Areas, Bedrooms) */}
+      <div className={`${slider ? '' : 'mt-2.5'} space-y-2.5`}>
+        {ROOM_DATA.map(renderRoomCard)}
       </div>
     </div>
   )
