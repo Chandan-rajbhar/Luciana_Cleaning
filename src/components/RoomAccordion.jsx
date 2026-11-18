@@ -207,30 +207,15 @@ export default function RoomAccordion({ className = '', topContent = null, middl
 
   return (
     <div className={`stagger-item ${className}`}>
-      {/* 1. Header: What's Included */}
-      <div className="flex items-center justify-between pb-1">
-        <div>
-          <h3 className="text-[15px] font-extrabold text-[#121A2B]">
-            What's Included
-          </h3>
-          <p className="text-[11.5px] font-medium text-[#7A8194]">
-            Tap to preview what we clean room by room
-          </p>
-        </div>
-        <span className="rounded-full bg-[#E6F6EC] px-2.5 py-0.5 text-[10.5px] font-bold text-[#2E9E5B]">
-          100% Guaranteed
-        </span>
-      </div>
-
-      {/* 2. "See the difference" slider directly ABOVE Kitchen card */}
+      {/* 1. "See the difference" slider directly ABOVE Kitchen card */}
       {slider && (
-        <div className="pt-4 pb-4.5">
+        <div className="pb-4.5">
           {slider}
         </div>
       )}
 
-      {/* 3. Full rooms list in one piece (Kitchen, Bathrooms, Living Areas, Bedrooms) */}
-      <div className={`${slider ? '' : 'mt-2.5'} space-y-2.5`}>
+      {/* 2. Full rooms list in one piece (Kitchen, Bathrooms, Living Areas, Bedrooms) */}
+      <div className="space-y-2.5">
         {ROOM_DATA.map(renderRoomCard)}
       </div>
     </div>
