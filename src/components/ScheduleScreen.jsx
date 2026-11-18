@@ -244,7 +244,7 @@ export default function ScheduleScreen({
   return (
     <div className="flex h-full flex-col text-[#121A2B]">
       {/* Scrollable Body (scrolls under sticky AppHeader) */}
-      <div className={`flex-1 overflow-y-auto no-scrollbar ${isTablet ? 'px-8 pt-4 space-y-5' : 'px-4 pt-3 space-y-4'} pb-[calc(var(--bar-h)+16px+env(safe-area-inset-bottom))] [overscroll-behavior:contain]`}>
+      <div className={`flex-1 overflow-y-auto no-scrollbar ${isTablet ? 'px-8 pt-4 space-y-5' : 'px-4 pt-3 space-y-4'} pb-5 [overscroll-behavior:none]`}>
         <div className="max-w-[720px] mx-auto w-full space-y-4">
           {/* 1. Service Summary Card */}
           <div className="stagger-item flex items-center justify-between rounded-[20px] bg-white p-3.5 shadow-[0_4px_16px_rgba(20,30,60,0.06)] border border-[#F0EAE0]">
@@ -331,8 +331,8 @@ export default function ScheduleScreen({
         </div>
       </div>
 
-      {/* 7. Sticky Bottom Bar */}
-      <div className="sticky bottom-0 z-20 border-t border-[#F0EAE0] bg-white p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] md:pb-4 shadow-[0_-4px_16px_rgba(20,30,60,0.05)]">
+      {/* 7. Bottom Action Bar (flex item pinned at bottom) */}
+      <div className="shrink-0 z-20 border-t border-[#F0EAE0] bg-white p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] md:pb-4 shadow-[0_-4px_16px_rgba(20,30,60,0.05)]">
         <div className="flex items-center justify-between gap-4 max-w-[720px] mx-auto w-full">
           <div>
             <span className="block text-[9.5px] font-bold uppercase tracking-[0.14em] text-[#7A8194]">

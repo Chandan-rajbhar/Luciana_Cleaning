@@ -18,7 +18,8 @@
   --border-color: #F0EAE0;
   --bar-h: 74px;
   --header-h: 64px;
-  --scroll-pb: calc(var(--bar-h) + 16px + env(safe-area-inset-bottom));
+  --nav-clearance: calc(76px + env(safe-area-inset-bottom, 0px));
+  --scroll-pb: var(--nav-clearance);
 }
 
 /* Multi-theme support with accessible AA contrast on active nav pill */
@@ -53,7 +54,8 @@
 [data-device="tablet"] {
   --header-h: 72px;
   --bar-h: 80px;
-  --scroll-pb: calc(var(--bar-h) + 24px + env(safe-area-inset-bottom, 0px));
+  --nav-clearance: calc(84px + env(safe-area-inset-bottom, 0px));
+  --scroll-pb: var(--nav-clearance);
 }
 
 html,
@@ -64,7 +66,25 @@ body,
   margin: 0;
   padding: 0;
   overflow: hidden;
-  overscroll-behavior: none;
+  overscroll-behavior: none !important;
+  overscroll-behavior-y: none !important;
+  overscroll-behavior-x: none !important;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Scoped Clamping Scroll Physics: Strictly eliminate rubber-band bounce, overscroll glow, pull-to-refresh on page/screen containers */
+html,
+body,
+#root,
+#app-shell,
+main,
+.page-scroll-body,
+[data-scrollable="true"],
+main .overflow-y-auto {
+  overscroll-behavior: none !important;
+  overscroll-behavior-y: none !important;
+  overscroll-behavior-x: none !important;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* Widths up to 1024px and touch-first devices (phones and tablets):

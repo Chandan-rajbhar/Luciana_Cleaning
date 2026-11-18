@@ -159,7 +159,7 @@ export default function ChatScreen({ onBack, onCallClick, onTriggerLoading }) {
       {/* 2. SCROLLABLE MESSAGE THREAD (between sticky header block and fixed input) */}
       <div
         ref={messageListRef}
-        className="no-scrollbar flex-1 overflow-y-auto overflow-x-hidden px-4 md:px-8 py-3 [overscroll-behavior:contain]"
+        className="no-scrollbar flex-1 overflow-y-auto overflow-x-hidden px-4 md:px-8 py-3 [overscroll-behavior:none]"
       >
         <div className="max-w-[720px] mx-auto w-full space-y-3.5">
           {/* Date Pill */}

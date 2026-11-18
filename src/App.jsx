@@ -427,10 +427,10 @@ export default function App() {
             ref={scrollContainerRef}
             onScroll={handleScroll}
             className={`no-scrollbar relative z-10 flex-1 min-h-0 w-full overflow-x-hidden ${
-              isMenuOpen || ['chat', 'detail', 'schedule', 'success', 'splash'].includes(currentScreen)
+              isMenuOpen || ['chat', 'detail', 'schedule', 'success', 'booking-details', 'splash'].includes(currentScreen)
                 ? 'overflow-hidden flex flex-col'
-                : 'overflow-y-auto pb-28'
-            } [overscroll-behavior:contain]`}
+                : `overflow-y-auto ${hideTabBar ? 'pb-6' : 'pb-[var(--nav-clearance)]'}`
+            } [overscroll-behavior:none]`}
           >
             <div
               key={transitionKey}
@@ -441,7 +441,7 @@ export default function App() {
               } ${
                 tapsLocked ? 'pointer-events-none' : ''
               } ${
-                ['chat', 'detail', 'schedule', 'success', 'splash'].includes(currentScreen)
+                ['chat', 'detail', 'schedule', 'success', 'booking-details', 'splash'].includes(currentScreen)
                   ? 'h-full flex flex-col'
                   : 'w-full'
               } relative z-10`}

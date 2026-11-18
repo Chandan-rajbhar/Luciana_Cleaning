@@ -42,7 +42,7 @@ export default function BookingsScreen({
   const pastList = bookings?.past || []
 
   return (
-    <div className={`flex flex-col text-[#121A2B] ${isTablet ? 'px-8 pt-4 space-y-5' : 'px-4 pt-3 space-y-4'} pb-[calc(var(--bar-h)+16px+env(safe-area-inset-bottom))]`}>
+    <div className={`flex flex-col text-[#121A2B] ${isTablet ? 'px-8 pt-4 space-y-5' : 'px-4 pt-3 space-y-4'} pb-2`}>
       {/* 1. Two Segmented Tabs under Header */}
       <div className="flex rounded-2xl bg-white p-1 shadow-[0_2px_8px_rgba(20,30,60,0.04)] border border-[#F0EAE0] stagger-item">
         <button

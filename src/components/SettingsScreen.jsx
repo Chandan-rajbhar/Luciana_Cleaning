@@ -28,7 +28,7 @@ export default function SettingsScreen({
   const [ecoFriendlyOnly, setEcoFriendlyOnly] = useState(true)
 
   return (
-    <div className="flex flex-col text-[#121A2B] px-4 md:px-8 pt-3 md:pt-4 pb-[calc(var(--bar-h)+24px+env(safe-area-inset-bottom))] space-y-4 max-w-[720px] mx-auto w-full">
+    <div className="flex flex-col text-[#121A2B] px-4 md:px-8 pt-3 md:pt-4 pb-2 space-y-4 max-w-[720px] mx-auto w-full">
       {/* Intro Header Card */}
       <div className="relative overflow-hidden rounded-[24px] bg-white p-5 shadow-[0_4px_16px_rgba(20,30,60,0.06)] border border-[#F0EAE0] stagger-item">
         <div className="flex items-center gap-3.5">

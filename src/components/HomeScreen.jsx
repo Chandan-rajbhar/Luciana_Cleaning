@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef, useCallback } from 'react'
 import {
   Sparkles,
   Wrench,
@@ -475,7 +475,7 @@ export default function HomeScreen({
   )
 
   return (
-    <div className={`text-[#121A2B] ${isTablet ? 'px-8 pt-4 space-y-6 max-w-full' : 'px-5 pt-3 space-y-6'} select-none pb-[calc(var(--bar-h)+16px+env(safe-area-inset-bottom))]`}>
+    <div className={`text-[#121A2B] ${isTablet ? 'px-8 pt-4 space-y-6 max-w-full' : 'px-5 pt-3 space-y-6'} select-none pb-2`}>
       {/* Feature 7: Fort Myers Zip Code Service Checker */}
       <div className="stagger-item">
         <ZipChecker
@@ -737,35 +737,85 @@ export default function HomeScreen({
         </div>
       </div>
 
-      {/* SECTION 6: Meet Our Cleaners (1 row without scroll on tablet, horizontal scroll on mobile) */}
-      <div className="stagger-item">
-        <h3 className={`${isTablet ? 'text-[22px]' : 'text-[17px]'} font-extrabold text-[#121A2B]`}>
-          Meet our cleaners
-        </h3>
+      {/* SECTION 6: Meet Our Cleaners (4-column grid on tablet, horizontal swipe cards on mobile) */}
+      <div className="stagger-item w-full min-w-0">
+        {/* Section Header: 18px bold on left, See all on right */}
+        <div className="flex items-center justify-between mb-3">
+          <h3 className={`${isTablet ? 'text-[22px]' : 'text-[18px]'} font-extrabold text-[#121A2B]`}>
+            Meet our cleaners
+          </h3>
+          <button
+            type="button"
+            onClick={() => {
+              onShowToast?.('Viewing all 4 certified cleaners in Fort Myers')
+            }}
+            className="text-[13px] font-bold text-[var(--primary)] hover:underline active:opacity-75 cursor-pointer min-h-[40px] inline-flex items-center"
+          >
+            See all
+          </button>
+        </div>
 
-        <div className={`mt-3 ${isTablet ? 'grid grid-cols-4 gap-4 overflow-x-visible' : 'flex gap-3 overflow-x-auto no-scrollbar pb-1 -mx-5 px-5'}`}>
+        {/* Scroll Container on mobile / 4-column grid on tablet */}
+        <div
+          className={`w-full min-w-0 ${
+            isTablet
+              ? 'grid grid-cols-4 gap-4 overflow-x-visible'
+              : 'flex gap-2.5 overflow-x-auto snap-x snap-mandatory no-scrollbar -mx-4 px-4 py-1.5'
+          }`}
+        >
           {CLEANERS_DATA.map((cleaner) => (
-            <button
+            <div
               key={cleaner.id}
-              type="button"
               onClick={() => setActiveCleaner(cleaner)}
-              className={`flex ${isTablet ? 'w-full flex-col items-center justify-center rounded-2xl bg-white p-3 border border-[#F0EAE0] shadow-xs' : 'shrink-0 flex-col items-center'} active:scale-[0.96] transition-transform cursor-pointer focus:outline-none`}
+              className={`group relative flex flex-col items-center text-center rounded-[22px] bg-white border border-[#F0EAE0] p-3.5 shadow-[0_4px_16px_rgba(20,30,60,0.06)] hover:shadow-[0_6px_20px_rgba(20,30,60,0.1)] active:scale-[0.985] transition-all cursor-pointer ${
+                isTablet ? 'w-full min-w-0' : 'w-[150px] shrink-0 snap-start'
+              }`}
             >
-              <div className="relative h-[72px] w-[72px] overflow-hidden rounded-full ring-2 ring-white shadow-md">
+              {/* 84x84 Round Photo with white 3px border and soft primary ring */}
+              <div className="relative h-[84px] w-[84px] shrink-0 overflow-hidden rounded-full border-[3px] border-white ring-2 ring-[var(--primary)]/20 shadow-md bg-[#FAF6F0]">
                 <img
                   src={cleaner.image}
                   alt={cleaner.name}
-                  className="h-full w-full object-cover"
+                  width="84"
+                  height="84"
+                  loading="lazy"
+                  className="h-full w-full object-cover object-top transition-transform duration-300 group-hover:scale-105"
                 />
               </div>
-              <span className="mt-1.5 text-[12px] font-extrabold text-[#121A2B]">
+
+              {/* Name (14px semibold) */}
+              <h4 className="mt-2.5 text-[14px] font-semibold text-[#121A2B] truncate max-w-full leading-tight">
                 {cleaner.name}
+              </h4>
+
+              {/* Rating + · N cleans (12px) */}
+              <div className="mt-1 flex items-center justify-center gap-1 text-[12px] font-medium text-[#7A8194]">
+                <Star className="h-3.5 w-3.5 fill-[#D98A1E] text-[#D98A1E] shrink-0" />
+                <span className="font-bold text-[#121A2B]">{cleaner.rating}</span>
+                <span>· {cleaner.reviews} cleans</span>
+              </div>
+
+              {/* Small green "Vetted" pill with shield-check icon */}
+              <span className="mt-2 inline-flex items-center gap-1 rounded-full bg-[#EBF7EE] px-2 py-0.5 text-[10.5px] font-bold text-[#1E824C]">
+                <ShieldCheck className="h-3 w-3 stroke-[2.4] text-[#1E824C]" />
+                Vetted
               </span>
-              <span className="flex items-center gap-0.5 text-[11px] font-bold text-[#D98A1E]">
-                <Star className="h-3 w-3 fill-[#D98A1E] text-[#D98A1E]" />
-                {cleaner.rating}
-              </span>
-            </button>
+
+              {/* Full-width pill button "Request" */}
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setActiveCleaner(null)
+                  onShowToast?.(`${cleaner.name} requested for your next clean!`)
+                  onOpenEstimate?.(SERVICES[0].id, selectedAddOns, cleaner.name)
+                }}
+                aria-label={`Request ${cleaner.name}`}
+                className="mt-3 flex h-10 min-h-[40px] w-full items-center justify-center rounded-full bg-[var(--primary)]/15 text-[12.5px] font-extrabold text-[var(--primary)] transition-all hover:bg-[var(--primary)]/25 active:scale-[0.96] active:bg-[var(--primary)] active:text-white cursor-pointer focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/40"
+              >
+                Request
+              </button>
+            </div>
           ))}
         </div>
       </div>

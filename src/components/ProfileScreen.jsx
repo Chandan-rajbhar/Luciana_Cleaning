@@ -113,7 +113,7 @@ export default function ProfileScreen({
   }
 
   return (
-    <div className="flex flex-col text-[#121A2B] px-4 md:px-8 pt-2.5 md:pt-4 pb-[calc(24px+env(safe-area-inset-bottom,0px))] space-y-4 max-w-[720px] mx-auto w-full select-none">
+    <div className="flex flex-col text-[#121A2B] px-4 md:px-8 pt-2.5 md:pt-4 pb-2 space-y-4 max-w-[720px] mx-auto w-full select-none">
       {/* 1. Centered Identity Block */}
       <div className="flex flex-col items-center text-center">
         {/* Avatar Container: 104px round avatar with coral ring and verified badge */}

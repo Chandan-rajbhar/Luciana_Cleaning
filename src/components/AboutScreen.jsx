@@ -35,7 +35,7 @@ export default function AboutScreen({ onBack, onBookClean }) {
   ]
 
   return (
-    <div className="flex flex-col text-[#121A2B] px-4 md:px-8 pt-3 md:pt-4 pb-[calc(var(--bar-h)+24px+env(safe-area-inset-bottom))] space-y-5 max-w-[720px] mx-auto w-full">
+    <div className="flex flex-col text-[#121A2B] px-4 md:px-8 pt-3 md:pt-4 pb-2 space-y-5 max-w-[720px] mx-auto w-full">
       {/* Intro Card */}
       <div className="relative overflow-hidden rounded-[24px] bg-white p-5 shadow-[0_4px_16px_rgba(20,30,60,0.06)] stagger-item">
           <div className="flex items-center gap-3.5">

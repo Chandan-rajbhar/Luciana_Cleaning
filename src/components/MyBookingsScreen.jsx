@@ -26,7 +26,7 @@ export default function MyBookingsScreen({
   const [activeTab, setActiveTab] = useState('upcoming')
 
   return (
-    <div className="flex flex-col text-[#121A2B] px-4 pt-3 pb-[calc(var(--bar-h)+16px+env(safe-area-inset-bottom))] space-y-4">
+    <div className="flex flex-col text-[#121A2B] px-4 pt-3 pb-2 space-y-4">
       {/* 1. Tab Switcher Pills */}
       <div className="flex rounded-2xl bg-white p-1 shadow-[0_2px_8px_rgba(20,30,60,0.04)] border border-[#F0EAE0] stagger-item">
         <button

@@ -59,7 +59,7 @@ export default function ServicesScreen({
   }, [activeCategory])
 
   return (
-    <div className={`flex flex-col text-[#121A2B] ${isTablet ? 'px-8 pt-4 space-y-5' : 'px-4 pt-3 space-y-3.5'} pb-[calc(var(--bar-h)+16px+env(safe-area-inset-bottom))]`}>
+    <div className={`flex flex-col text-[#121A2B] ${isTablet ? 'px-8 pt-4 space-y-5' : 'px-4 pt-3 space-y-3.5'} pb-2`}>
       {/* Horizontal Category Filter Chips */}
       <div className={`stagger-item flex gap-2 overflow-x-auto no-scrollbar py-0.5 ${isTablet ? '-mx-8 px-8' : '-mx-4 px-4'} scroll-smooth`}>
         {CATEGORIES.map((cat) => {

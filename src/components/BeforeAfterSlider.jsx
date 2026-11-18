@@ -22,6 +22,7 @@ export default function BeforeAfterSlider({
 }) {
   const containerRef = useRef(null)
   const isDraggingRef = useRef(false)
+  const [isDragging, setIsDragging] = useState(false)
   const [sliderPos, setSliderPos] = useState(50) // percentage 4% - 96%
   const [isTransitioning, setIsTransitioning] = useState(false)
   const hasAnimatedRef = useRef(false)
@@ -79,6 +80,7 @@ export default function BeforeAfterSlider({
 
   const handlePointerDown = (e) => {
     isDraggingRef.current = true
+    setIsDragging(true)
     setIsTransitioning(false)
     e.currentTarget.setPointerCapture(e.pointerId)
     const newPos = calcPercentageFromClientX(e.clientX)
@@ -104,6 +106,7 @@ export default function BeforeAfterSlider({
   const handlePointerUp = (e) => {
     if (!isDraggingRef.current) return
     isDraggingRef.current = false
+    setIsDragging(false)
     try {
       e.currentTarget.releasePointerCapture(e.pointerId)
     } catch {
@@ -155,31 +158,40 @@ export default function BeforeAfterSlider({
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
         onPointerCancel={handlePointerUp}
-        style={{ touchAction: 'pan-y' }}
-        className="relative aspect-[4/3] w-full cursor-ew-resize select-none overflow-hidden rounded-[24px] bg-[#121A2B] shadow-[0_6px_22px_rgba(20,30,60,0.08)] border border-[#F0EAE0]"
+        style={{ touchAction: isDragging ? 'none' : 'pan-y' }}
+        className="relative aspect-[4/3] w-full cursor-ew-resize select-none overflow-hidden rounded-[24px] bg-[#FAF6F0] shadow-[0_6px_22px_rgba(20,30,60,0.08)] border border-[#F0EAE0]"
       >
-        {/* Layer 1: "Before" Image (Base layer, underneath) */}
+        {/* Layer 1: "After" Image (Underneath / Base layer, visible on right side) */}
+        <img
+          src={imgAfterSrc}
+          alt="Room after deep cleaning"
+          onError={(e) => {
+            if (e.currentTarget.src !== fallbackAfter) {
+              e.currentTarget.src = fallbackAfter
+            }
+          }}
+          className="absolute inset-0 h-full w-full object-cover object-center pointer-events-none select-none"
+        />
 
-
-        {/* Layer 2: "After" Image (Top layer, clipped to the right of divider) */}
+        {/* Layer 2: "Before" Image (Top layer, clipped to the left of divider: inset(0 X% 0 0)) */}
         <div
           style={{
-            clipPath: `inset(0 0 0 ${sliderPos}%)`,
+            clipPath: `inset(0 ${(100 - sliderPos).toFixed(4)}% 0 0)`,
             transition: isTransitioning
               ? 'clip-path 260ms cubic-bezier(0.25, 1, 0.5, 1)'
               : 'none',
           }}
-          className="absolute inset-0 h-full w-full pointer-events-none select-none"
+          className="absolute inset-0 h-full w-full pointer-events-none select-none overflow-hidden"
         >
           <img
-            src={imgAfterSrc}
-            alt="Room after deep cleaning"
+            src={imgBeforeSrc}
+            alt="Room before cleaning"
             onError={(e) => {
-              if (e.currentTarget.src !== fallbackAfter) {
-                e.currentTarget.src = fallbackAfter
+              if (e.currentTarget.src !== fallbackBefore) {
+                e.currentTarget.src = fallbackBefore
               }
             }}
-            className="h-full w-full object-cover object-center pointer-events-none select-none"
+            className="absolute inset-0 h-full w-full object-cover object-center pointer-events-none select-none"
           />
         </div>
 
@@ -217,11 +229,14 @@ export default function BeforeAfterSlider({
             left: `${sliderPos}%`,
             top: '50%',
             transform: 'translate(-50%, -50%)',
+            touchAction: 'none',
             transition: isTransitioning
               ? 'left 260ms cubic-bezier(0.25, 1, 0.5, 1)'
               : 'none',
           }}
-          className="absolute z-30 flex h-10 w-10 min-h-[40px] min-w-[40px] items-center justify-center rounded-full bg-white text-[#EF5A78] shadow-[0_4px_14px_rgba(0,0,0,0.28)] ring-2 ring-white/80 active:scale-95 focus:outline-none focus:ring-3 focus:ring-[#EF5A78] cursor-grab active:cursor-grabbing"
+          className={`absolute z-30 flex h-10 w-10 min-h-[40px] min-w-[40px] items-center justify-center rounded-full bg-white text-[#EF5A78] shadow-[0_4px_14px_rgba(0,0,0,0.28)] ring-2 ring-white/80 active:scale-95 focus:outline-none focus:ring-3 focus:ring-[#EF5A78] ${
+            isDragging ? 'cursor-grabbing' : 'cursor-grab'
+          }`}
         >
           <ChevronsLeftRight className="h-5 w-5 stroke-[2.4]" />
         </div>

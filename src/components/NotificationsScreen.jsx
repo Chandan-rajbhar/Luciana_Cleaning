@@ -38,7 +38,7 @@ export default function NotificationsScreen({
   const unreadCount = notifications.filter((n) => n.unread).length
 
   return (
-    <div className="flex flex-col text-[#121A2B] px-4 md:px-8 pt-3 md:pt-4 pb-[calc(var(--bar-h)+24px+env(safe-area-inset-bottom))] max-w-[720px] mx-auto w-full">
+    <div className="flex flex-col text-[#121A2B] px-4 md:px-8 pt-3 md:pt-4 pb-2 max-w-[720px] mx-auto w-full">
       {/* Action Header Sub-bar */}
       <div className="flex items-center justify-between py-2 stagger-item">
         <div className="flex items-center gap-2">

@@ -113,21 +113,21 @@ export default function ServiceDetailScreen({
   // Title, subtitle & price block
   const titleAndPrice = (
     <div className="stagger-item">
-      <h2 className={`${isTablet ? 'text-[24px]' : 'text-[20px]'} font-extrabold text-[#121A2B] leading-tight`}>
+      <h2 className={`${isTablet ? 'text-[24px]' : 'text-[21px]'} font-bold text-[#121A2B] leading-tight`}>
         {service.title}
       </h2>
-      <p className="mt-1 text-[12px] font-medium text-[#7A8194]">
-        {service.subtitle} • {service.location}
+      <p className="mt-1 text-[12px] font-medium text-[#7A8194] truncate">
+        By Luciana Certified Team · Fort Myers, FL
       </p>
 
-      <div className="mt-2.5 flex items-center justify-between">
-        <div className="flex items-baseline gap-1.5">
+      <div className="mt-2.5 flex items-center justify-between gap-3">
+        <div className="flex items-baseline gap-1.5 min-w-0">
           {isRecurring ? (
-            <div className="flex items-baseline gap-1.5">
+            <div className="flex items-baseline gap-1.5 min-w-0">
               <span className="text-[14px] font-bold text-[#8A8FA3] line-through">
                 ${service.hourlyRate}
               </span>
-              <span className="text-[24px] font-extrabold text-[#2E9E5B]">
+              <span className="text-[24px] font-extrabold text-[var(--primary)] transition-colors duration-200">
                 ${discountedHourlyRate}
               </span>
               <span className="text-[13px] font-semibold text-[#7A8194]">
@@ -135,8 +135,8 @@ export default function ServiceDetailScreen({
               </span>
             </div>
           ) : (
-            <div className="flex items-baseline gap-1">
-              <span className="text-[24px] font-extrabold text-[#EF5A78]">
+            <div className="flex items-baseline gap-1 min-w-0">
+              <span className="text-[24px] font-extrabold text-[var(--primary)] transition-colors duration-200">
                 ${service.hourlyRate}
               </span>
               <span className="text-[13px] font-semibold text-[#7A8194]">
@@ -146,8 +146,8 @@ export default function ServiceDetailScreen({
           )}
         </div>
 
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-[11.5px] font-bold text-[#121A2B] shadow-[0_2px_8px_rgba(20,30,60,0.06)] border border-[#F0EAE0]">
-          <Clock className="h-3.5 w-3.5 text-[#EF5A78]" />
+        <span className="shrink-0 whitespace-nowrap inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-[11.5px] font-bold text-[#121A2B] shadow-[0_2px_8px_rgba(20,30,60,0.06)] border border-[#F0EAE0]">
+          <Clock className="h-3.5 w-3.5 text-[var(--primary)]" />
           {service.duration}
         </span>
       </div>
@@ -207,73 +207,70 @@ export default function ServiceDetailScreen({
     </div>
   )
 
+  // Slider block: "See the difference"
+  const sliderBlock = (
+    <BeforeAfterSlider
+      scene={sliderScene}
+      title="See the difference"
+      subtitle={
+        sliderScene === 'kitchen'
+          ? 'Gas stovetop & counters degreased spotless'
+          : 'Living room organized, dusted & polished'
+      }
+    />
+  )
+
   return (
     <div className="flex h-full flex-col text-[#121A2B]">
       {/* 1. Scrollable Content (scrolls under sticky header) */}
-      <div className={`flex-1 overflow-y-auto no-scrollbar ${isTablet ? 'px-8 pt-4 space-y-5' : 'px-4 pt-3 space-y-4'} pb-[calc(var(--bar-h)+16px+env(safe-area-inset-bottom))] [overscroll-behavior:contain]`}>
+      <div className={`flex-1 overflow-y-auto no-scrollbar ${isTablet ? 'px-8 pt-4 space-y-5' : 'px-4 pt-3 space-y-4'} pb-5 [overscroll-behavior:none]`}>
         {isTablet && isLandscape ? (
-          /* Landscape 2-column layout: Left (photo, slider, title, features), Right (About, frequency, accordion) */
+          /* Landscape 2-column layout: Left (photo, title, frequency, features, about), Right (What's Included with slider) */
           <div className="grid grid-cols-2 gap-6 items-start">
             <div className="space-y-4">
               {photoBanner}
-              <BeforeAfterSlider
-                scene={sliderScene}
-                title="See the difference"
-                subtitle={
-                  sliderScene === 'kitchen'
-                    ? 'Gas stovetop & counters degreased spotless'
-                    : 'Living room organized, dusted & polished'
-                }
-              />
               {titleAndPrice}
-              {featureCards}
-            </div>
-
-            <div className="space-y-4">
-              {aboutCard}
               <FrequencyToggle
                 draft={bookingDraft}
                 onFrequencyChange={(freq) => onUpdateDraft?.({ frequency: freq })}
                 showPriceSummary={true}
+                hourlyRate={service.hourlyRate}
               />
-              <RoomAccordion />
+              {featureCards}
+              {aboutCard}
+            </div>
+
+            <div className="space-y-4">
+              <RoomAccordion middleContent={sliderBlock} />
             </div>
           </div>
         ) : (
-          /* Portrait single-column layout */
+          /* Portrait single-column layout: Photo -> Title/Price -> Frequency -> What's Included (Kitchen) -> Slider -> Remaining Rooms -> Features -> About */
           <div className={`${isTablet ? 'max-w-[720px] mx-auto' : ''} space-y-4`}>
             {photoBanner}
-            <BeforeAfterSlider
-              scene={sliderScene}
-              title="See the difference"
-              subtitle={
-                sliderScene === 'kitchen'
-                  ? 'Gas stovetop & counters degreased spotless'
-                  : 'Living room organized, dusted & polished'
-              }
-            />
             {titleAndPrice}
             <FrequencyToggle
               draft={bookingDraft}
               onFrequencyChange={(freq) => onUpdateDraft?.({ frequency: freq })}
               showPriceSummary={true}
+              hourlyRate={service.hourlyRate}
             />
+            <RoomAccordion middleContent={sliderBlock} />
             {featureCards}
             {aboutCard}
-            <RoomAccordion />
           </div>
         )}
       </div>
 
-      {/* 8. Sticky Bottom Action Bar */}
-      <div className="sticky bottom-0 z-20 w-full border-t border-[#F0EAE0] bg-white px-5 py-3.5 pb-[calc(0.9rem+env(safe-area-inset-bottom))] shadow-[0_-6px_24px_rgba(20,30,60,0.08)]">
+      {/* 8. Bottom Action Bar (flex item pinned at bottom) */}
+      <div className="shrink-0 z-20 w-full border-t border-[#F0EAE0] bg-white px-5 py-3.5 pb-[calc(0.9rem+env(safe-area-inset-bottom))] shadow-[0_-6px_24px_rgba(20,30,60,0.08)]">
         <div className="flex items-center justify-between gap-4 max-w-[720px] mx-auto w-full">
           <div>
             <span className="block text-[10px] font-bold uppercase tracking-[0.14em] text-[#7A8194]">
               TOTAL RATE
             </span>
             <div className="flex items-baseline gap-1">
-              <span className="text-[20px] font-extrabold text-[#EF5A78]">
+              <span className="text-[20px] font-extrabold text-[var(--primary)] transition-colors duration-200">
                 ${isRecurring ? discountedHourlyRate : service.hourlyRate}
               </span>
               <span className="text-[12px] font-semibold text-[#7A8194]">
@@ -288,7 +285,7 @@ export default function ServiceDetailScreen({
           <button
             type="button"
             onClick={() => onBookNow(service.id)}
-            className="flex min-h-[46px] flex-1 max-w-[210px] items-center justify-center gap-2 rounded-full bg-[#EF5A78] px-6 py-3 text-[13.5px] font-extrabold text-white shadow-[0_6px_20px_rgba(239,90,120,0.4)] hover:brightness-105 active:scale-[0.97] transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#EF5A78] cursor-pointer"
+            className="flex min-h-[46px] flex-1 max-w-[210px] items-center justify-center gap-2 rounded-full bg-[var(--primary)] px-6 py-3 text-[13.5px] font-extrabold text-white shadow-[0_6px_20px_rgba(239,90,120,0.4)] hover:brightness-105 active:scale-[0.97] transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--primary)] cursor-pointer"
           >
             <span>Book Now</span>
             <ArrowRight className="h-4 w-4 stroke-[2.5]" />
